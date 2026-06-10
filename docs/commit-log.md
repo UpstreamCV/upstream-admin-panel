@@ -4,6 +4,26 @@ Reverse chronological. Newest at top. Every meaningful commit gets an entry foll
 
 ---
 
+## 2026-06-10 - fix: render API-unavailable diagnostic instead of crashing the shell
+
+### Summary
+Signing in against an API that lacks the `/v1/admin/*` surface (e.g. prod
+before the api-server PR merges/deploys) made `(app)/layout.tsx` rethrow the
+404 and Next rendered a generic "server error" page. The layout now renders
+an ApiUnavailable card for any non-`not_platform_admin` failure, showing the
+status/code and the two most likely causes (API not deployed with the admin
+surface; wrong `NEXT_PUBLIC_UPSTREAM_API_URL`), with a sign-out button.
+
+### Files touched
+- `src/app/(app)/layout.tsx` — new `ApiUnavailable` component; catch-all
+  error handling around the `/v1/admin/me` gate.
+
+### Testing/checks
+`npm run lint`, `npm run build` green. Reproduced against prod (404 on
+/v1/admin/me) before the fix.
+
+---
+
 ## 2026-06-10 - feat: initial admin panel (scaffold + all v1 pages)
 
 ### Summary
