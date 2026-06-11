@@ -4,6 +4,44 @@ Reverse chronological. Newest at top. Every meaningful commit gets an entry foll
 
 ---
 
+## 2026-06-11 - feat: admin editing tools (accounts, members, tokens, force-stop, admins)
+
+### Summary
+The panel goes read-write against upstream-api-server's new editing surface:
+create accounts (optional first owner, created via GoTrue when new), edit
+name/slug inline, manage members (add by email w/ optional user creation,
+role select, remove, one-time password-recovery links), issue/revoke agent
+API tokens (one-time plaintext reveal), force-stop active sessions from the
+stream detail page, and a new /admins page managing the platform_admins
+allowlist (self-removal blocked server-side; "you" badge client-side).
+
+### Files touched
+- `src/app/(app)/accounts/create-account-form.tsx` — inline expanding create
+  form in the accounts PageHeader; routes to the new account on success.
+- `src/app/(app)/accounts/[accountId]/manage-cards.tsx` — IdentityCard
+  (name/slug PATCH), MembersCard (add/role/remove/recovery link),
+  TokensCard (issue with one-time plaintext + revoke).
+- `src/app/(app)/accounts/[accountId]/account-detail-client.tsx` — wires the
+  new cards; read-only members/tokens lists replaced.
+- `src/app/(app)/streams/[sessionId]/stream-detail-client.tsx` —
+  ForceStopButton on active sessions (confirm dialog, admin_forced).
+- `src/app/(app)/admins/` — new page; sidebar gains an Admins item.
+- `src/app/api/upstream/[...path]/route.ts` — FIX: bodyless statuses
+  (204/205/304) must be piped without a body; the Response constructor
+  throws otherwise, which turned every successful upstream DELETE into a
+  proxy 500.
+- `src/types/admin.ts` — token-create response, recovery link, platform
+  admins shapes.
+
+### Testing/checks
+`npm run lint` + `npm run build` green. Full E2E through the panel proxy
+against the local stack: create-with-new-owner, rename/slug, slug-conflict
+409, member add/promote/last-owner-guard/remove, recovery link, token
+create/revoke, platform-admin add/self-guard/remove, force-stop
+(admin_forced + camera idle), and the audit log showing all ten actions.
+
+---
+
 ## 2026-06-11 - restyle: dashboard-next design system, dark + gold
 
 ### Summary

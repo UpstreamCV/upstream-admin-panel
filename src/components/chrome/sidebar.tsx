@@ -12,6 +12,7 @@ import {
   LogOut,
   Radio,
   ScrollText,
+  ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -29,6 +30,7 @@ const NAV: {
   { label: "Accounts", href: "/accounts", match: /^\/accounts/, icon: Building2 },
   { label: "Usage", href: "/usage", match: /^\/usage/, icon: BarChart3 },
   { label: "Audit log", href: "/audit-log", match: /^\/audit-log/, icon: ScrollText },
+  { label: "Admins", href: "/admins", match: /^\/admins/, icon: ShieldCheck },
 ];
 
 const ICON_SIZE = { width: "clamp(18px,1.6vw,22px)", height: "clamp(18px,1.6vw,22px)" };
