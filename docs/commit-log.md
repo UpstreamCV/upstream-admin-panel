@@ -21,6 +21,31 @@ manifest in the root layout (same shape as the dashboard's).
 
 ---
 
+## 2026-06-11 - feat: graphs read server-collected health history
+
+### Summary
+The DB-latency graph no longer builds a per-tab client ring buffer — the
+API now samples itself (in-process loop, system_health_samples table) and
+the panel reads GET /v1/admin/system/health/history. Adds two more tiles
+from the same samples: Component uptime (UptimeStrip — gold ok / yellow
+MediaMTX-unreachable / red down, with an uptime %% headline) and Active
+sessions over the last hour. The browser still polls once a minute to
+refresh the view, but it no longer drives the probes, and history is shared
+across tabs / exists while nobody is watching.
+
+### Files touched
+- `src/components/data/spark.tsx` — UptimeStrip.
+- `src/app/(app)/system-health-client.tsx` — history fetch replaces the
+  ring buffer; three server-sampled tiles.
+- `src/types/admin.ts` — HealthHistory.
+
+### Testing/checks
+`npm run lint` + `npm run build` green; live with a 5 s sampler interval
+the history endpoint served server-collected samples and the page rendered
+all three tiles.
+
+---
+
 ## 2026-06-11 - feat: system health graphs (sparklines, no chart lib)
 
 ### Summary

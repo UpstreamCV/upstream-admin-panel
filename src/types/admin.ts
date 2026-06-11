@@ -36,6 +36,22 @@ export interface SystemTimeseries {
   }[];
 }
 
+export interface HealthHistory {
+  minutes: number;
+  interval_seconds: number;
+  samples: {
+    sampled_at: string;
+    db_ok: boolean;
+    db_latency_ms: number | null;
+    mediamtx_status: "ok" | "unreachable" | "error";
+    mediamtx_active_paths: number | null;
+    processors_active: number;
+    processors_stale: number;
+    processors_failed: number;
+    active_sessions: number;
+  }[];
+}
+
 // --- streams ---
 
 export interface AdminHeartbeat {

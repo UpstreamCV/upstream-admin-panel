@@ -156,3 +156,39 @@ export function GraphTile({
     </div>
   );
 }
+
+/** Uptime strip: one cell per sample, colored by status. */
+export function UptimeStrip({
+  statuses,
+  height = 20,
+}: {
+  statuses: ("ok" | "warn" | "down")[];
+  height?: number;
+}) {
+  const width = 100;
+  if (statuses.length === 0) return <EmptySpark height={height} />;
+  const slot = width / statuses.length;
+  const color = { ok: GOLD, warn: "#eedc68", down: "#e15a4c" } as const;
+  return (
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="none"
+      className="w-full"
+      style={{ height }}
+      aria-hidden
+    >
+      {statuses.map((s, i) => (
+        <rect
+          key={i}
+          x={i * slot + slot * 0.15}
+          y={2}
+          width={slot * 0.7}
+          height={height - 4}
+          rx={1}
+          fill={color[s]}
+          opacity={s === "ok" ? 0.55 : 0.95}
+        />
+      ))}
+    </svg>
+  );
+}
