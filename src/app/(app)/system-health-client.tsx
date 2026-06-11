@@ -1,18 +1,29 @@
 "use client";
 
+import clsx from "clsx";
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { PageHeader } from "@/components/data/page-header";
+import { AreaSpark, BarSpark, GraphTile } from "@/components/data/spark";
 import { StatTile } from "@/components/data/stat-tile";
 import { StatusBadge } from "@/components/data/status-badge";
 import { RelativeTime } from "@/components/data/relative-time";
 import { useUpstreamList } from "@/lib/api/use-list";
-import type { AdminStreamsSummary, SystemHealth } from "@/types/admin";
+import type { AdminStreamsSummary, SystemHealth, SystemTimeseries } from "@/types/admin";
 
 function componentTone(status: string): "positive" | "warn" | "danger" {
   if (status === "ok") return "positive";
   if (status === "unreachable") return "warn";
   return "danger";
 }
+
+const RANGES = [
+  { hours: 24, label: "24h" },
+  { hours: 72, label: "3d" },
+  { hours: 168, label: "7d" },
+] as const;
+
+const LATENCY_WINDOW = 40; // health polls kept for the live latency spark
 
 export function SystemHealthClient() {
   const { data: health } = useUpstreamList<SystemHealth>("/v1/admin/system/health", {
@@ -22,6 +33,33 @@ export function SystemHealthClient() {
     "/v1/admin/streams/summary",
     { refreshInterval: 15_000 },
   );
+  const [hours, setHours] = useState<number>(24);
+  const { data: series } = useUpstreamList<SystemTimeseries>(
+    `/v1/admin/system/timeseries?hours=${hours}`,
+    { refreshInterval: 60_000 },
+  );
+
+  // Live DB-latency ring buffer fed by the 15s health poll — a this-tab
+  // view (latency history isn't persisted server-side).
+  const latencyRef = useRef<(number | null)[]>([]);
+  const [latency, setLatency] = useState<(number | null)[]>([]);
+  useEffect(() => {
+    if (!health) return;
+    const next = [
+      ...latencyRef.current,
+      health.database.status === "ok" ? health.database.latency_ms : null,
+    ].slice(-LATENCY_WINDOW);
+    latencyRef.current = next;
+    setLatency(next);
+  }, [health]);
+
+  const points = series?.points ?? [];
+  const totalSessions = points.reduce((sum, p) => sum + p.sessions_started, 0);
+  const totalFailures = points.reduce((sum, p) => sum + p.validation_failures, 0);
+  const totalMinutes = points.reduce((sum, p) => sum + p.streaming_minutes, 0);
+  const fpsValues = points.map((p) => p.avg_fps);
+  const latestFps = [...fpsValues].reverse().find((v) => v !== null) ?? null;
+  const lastLatency = [...latency].reverse().find((v) => v !== null) ?? null;
 
   return (
     <div>
@@ -89,6 +127,77 @@ export function SystemHealthClient() {
             ) : undefined
           }
         />
+      </div>
+
+      <div className="flex items-center justify-between mt-10 mb-4 flex-wrap gap-2">
+        <h2 className="font-bold text-[clamp(1.1rem,1.5vw,1.4rem)]">
+          Activity <span className="dn-grad-text">history</span>
+        </h2>
+        <div className="flex items-center gap-1.5">
+          {RANGES.map((r) => (
+            <button
+              key={r.hours}
+              type="button"
+              onClick={() => setHours(r.hours)}
+              className={clsx(
+                "rounded-full px-3 py-1 text-xs font-mono uppercase tracking-wide transition border",
+                hours === r.hours
+                  ? "bg-[var(--dn-creek-mid)] border-transparent text-[#1c1610]"
+                  : "border-transparent text-[var(--dn-text-70)] hover:text-[var(--dn-text)] hover:bg-white/5",
+              )}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <GraphTile
+          label="Sessions started"
+          headline={series ? totalSessions : "…"}
+          hint={`per hour · last ${hours}h`}
+        >
+          <BarSpark values={points.map((p) => p.sessions_started)} />
+        </GraphTile>
+        <GraphTile
+          label="Validation failures"
+          headline={
+            series ? (
+              <span className={totalFailures > 0 ? "text-[#e89e93]" : undefined}>
+                {totalFailures}
+              </span>
+            ) : (
+              "…"
+            )
+          }
+          hint={`per hour · last ${hours}h`}
+        >
+          <BarSpark values={points.map((p) => p.validation_failures)} color="#e15a4c" />
+        </GraphTile>
+        <GraphTile
+          label="Streaming minutes"
+          headline={series ? Math.round(totalMinutes).toLocaleString() : "…"}
+          hint={`per hour · last ${hours}h`}
+        >
+          <AreaSpark values={points.map((p) => p.streaming_minutes)} />
+        </GraphTile>
+        <GraphTile
+          label="Avg FPS"
+          headline={latestFps !== null ? latestFps.toFixed(1) : "—"}
+          hint={`hourly avg · gaps = no streams`}
+        >
+          <AreaSpark values={fpsValues} />
+        </GraphTile>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+        <GraphTile
+          label="DB latency (live)"
+          headline={lastLatency !== null ? `${lastLatency} ms` : "…"}
+          hint={`last ${latency.length} polls · this tab only`}
+        >
+          <AreaSpark values={latency} height={36} />
+        </GraphTile>
       </div>
 
       <h2 className="font-bold text-[clamp(1.1rem,1.5vw,1.4rem)] mt-10 mb-4">

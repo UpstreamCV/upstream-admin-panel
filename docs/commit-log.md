@@ -4,6 +4,35 @@ Reverse chronological. Newest at top. Every meaningful commit gets an entry foll
 
 ---
 
+## 2026-06-11 - feat: system health graphs (sparklines, no chart lib)
+
+### Summary
+The System page gains an "Activity history" section — four graph tiles
+(sessions started, validation failures, streaming minutes, avg FPS) over a
+24h/3d/7d range picker, backed by the API's new /v1/admin/system/timeseries
+hourly buckets — plus a live DB-latency sparkline fed by the existing 15s
+health poll (client-side ring buffer; this-tab only, since latency history
+isn't persisted). Stream detail gets FPS and bitrate sparklines computed
+from the heartbeats the page already fetches. Charts are hand-rolled SVG
+(AreaSpark handles null gaps by breaking the line rather than interpolating
+to zero; BarSpark renders zero-hours as 1px stubs) — the no-chart-library
+decision stands.
+
+### Files touched
+- `src/components/data/spark.tsx` — new: AreaSpark, BarSpark, GraphTile.
+- `src/app/(app)/system-health-client.tsx` — Activity history section,
+  range picker, latency ring buffer.
+- `src/app/(app)/streams/[sessionId]/stream-detail-client.tsx` — FPS +
+  bitrate sparklines above the heartbeats table.
+- `src/types/admin.ts` — SystemTimeseries.
+
+### Testing/checks
+`npm run lint` + `npm run build` green; live against the local stack the
+timeseries endpoint returned 24 zero-filled buckets with real data in the
+active hour, and the System page renders all five graph tiles.
+
+---
+
 ## 2026-06-11 - feat: admin editing tools (accounts, members, tokens, force-stop, admins)
 
 ### Summary
