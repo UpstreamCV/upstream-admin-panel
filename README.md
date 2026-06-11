@@ -13,8 +13,11 @@ on every call; the UI gate is convenience only).
 ## Architecture
 
 - Next.js 16 (App Router) + React 19 + Tailwind v4 — same stack and plumbing
-  as `upstream-dashboard`, with the accent shifted to amber so an admin tab is
-  visually distinct from the operator dashboard.
+  as `upstream-dashboard`, and the same design system: the dashboard-next
+  look (orb shell, frosted rail/panel, tiles, Satoshi) recolored dark with the
+  gold accent so an admin tab is visually distinct. Token/class names match
+  the dashboard's `--dn-*`/`.dn-*` (scope class `.admin-panel`, values in
+  `src/app/theme.css`).
 - `proxy.ts` (Next middleware) refreshes the Supabase session and gates
   "signed in at all".
 - `src/app/api/upstream/[...path]/route.ts` is a server-side proxy that mints

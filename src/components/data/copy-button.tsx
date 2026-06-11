@@ -35,10 +35,10 @@ export function CopyButton({
       disabled={isEmpty}
       aria-label={label ? `Copy ${label}` : "Copy to clipboard"}
       className={clsx(
-        "inline-flex items-center gap-1.5 text-[11px] mono uppercase tracking-wider transition",
+        "inline-flex items-center gap-1.5 transition",
         isEmpty
-          ? "text-ink-mute/40 cursor-not-allowed"
-          : "text-ink-mute hover:text-ink",
+          ? "text-[var(--dn-text-15)] cursor-not-allowed"
+          : "text-[var(--dn-text-50)] hover:text-[var(--dn-text)]",
         className,
       )}
     >

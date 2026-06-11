@@ -4,6 +4,50 @@ Reverse chronological. Newest at top. Every meaningful commit gets an entry foll
 
 ---
 
+## 2026-06-11 - restyle: dashboard-next design system, dark + gold
+
+### Summary
+Full visual port of upstream-dashboard's current design system (the
+`.dashboard-next` look: solid shell with five drifting blurred orbs, frosted
+sidebar rail + giant rounded frosted panel, solid tiles, Satoshi, custom
+overlay scrollbar, cursor-proximity glow buttons) — recolored dark with the
+gold accent (#d9a441) replacing creek green. Token/class NAMES are kept
+identical to the source (`--dn-*` / `.dn-*`, scope class `.admin-panel`) so
+recipes stay copy-compatible between the two repos; only values differ.
+
+### Files touched
+- `src/app/theme.css` — new; adapted copy of the dashboard's theme.css
+  (dark tiles #211a11, warm off-white text, gold gradients, dimmed gold/
+  bronze orbs, gold scrollbar thumb, reduced-motion guard kept).
+- `src/app/fonts.ts` + `src/app/fonts/` — Satoshi (same files + license).
+- `src/app/globals.css` — slimmed to resets; legacy glass theme deleted.
+- `src/app/layout.tsx` — `.admin-panel` + Satoshi scope wrapper.
+- `src/components/chrome/` — new; `shell-backdrop/cursor-glow/scroll-area`
+  copied verbatim from the dashboard; `sidebar.tsx` (rail with admin nav +
+  sign out) and `topbar.tsx` (avatar + greeting + wordmark) adapted; old
+  `src/components/nav/topbar.tsx` deleted.
+- `src/app/(app)/layout.tsx` — dashboard shell geometry (h-dvh, topbar,
+  rail, `dn-panel` + ScrollArea); NotAuthorized/ApiUnavailable gates
+  restyled as centered tiles. New `(app)/loading.tsx` + `(app)/error.tsx`
+  per the dashboard's skeleton/error patterns.
+- `src/components/data/*` — same APIs, dashboard-next recipes: new
+  `status-dot.tsx` (halo dot), `status-badge` = dot + label, `data-table` =
+  tile-wrapped table grammar, `stat-tile` = StatCard recipe, `page-header`
+  with `.dn-grad-text` accent word, `empty-state` tile, copy-button tints.
+- All page clients — class vocabulary swap (glass → dn-tile, ink → --dn-text
+  vars, accent → gold, gold active filter pills, gold usage bars,
+  `dn-grad-btn` save button); no data/logic changes.
+- `(auth)/` — login on the orb shell in a `dn-glass-card` with `dn-field`
+  pills and the `dn-grad-btn dn-glow-btn` cursor-glow submit.
+- `README.md` — theme note updated.
+
+### Testing/checks
+`npm run lint` + `npm run build` green. Local run against the seeded stack:
+all five pages 200 with the new chrome in the rendered HTML and zero legacy
+class names; login/gate states render the new card styles.
+
+---
+
 ## 2026-06-10 - fix: render API-unavailable diagnostic instead of crashing the shell
 
 ### Summary

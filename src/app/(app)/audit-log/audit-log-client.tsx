@@ -46,7 +46,7 @@ export function AuditLogClient() {
       />
 
       {isLoading && !data ? (
-        <p className="text-ink-mute text-sm">Loading…</p>
+        <p className="text-[var(--dn-text-50)] text-sm">Loading…</p>
       ) : (data?.items.length ?? 0) === 0 ? (
         <EmptyState
           icon={ScrollText}
@@ -54,36 +54,36 @@ export function AuditLogClient() {
           description="Plan, status, and limits changes will appear here."
         />
       ) : (
-        <div className="glass rounded-2xl overflow-hidden">
+        <div className="dn-tile overflow-hidden">
           <ul>
             {data?.items.map((entry) => (
               <li
                 key={entry.id}
-                className="px-5 py-3.5 border-b border-glass-stroke-2/60 last:border-0"
+                className="px-5 py-3.5 border-b border-[rgba(255,255,255,0.07)] last:border-0"
               >
                 <div className="flex items-center gap-3 flex-wrap text-sm">
-                  <span className="mono text-xs text-accent">{entry.action}</span>
+                  <span className="font-mono text-xs text-[var(--dn-creek-mid)]">{entry.action}</span>
                   {entry.target_id ? (
                     entry.target_type.startsWith("account") ? (
                       <Link
                         href={`/accounts/${entry.target_id}`}
-                        className="mono text-xs text-ink-soft hover:text-accent transition"
+                        className="font-mono text-xs text-[var(--dn-text-70)] hover:text-[var(--dn-creek-mid)] transition"
                       >
                         {entry.target_type} {entry.target_id.slice(0, 8)}…
                       </Link>
                     ) : (
-                      <span className="mono text-xs text-ink-soft">
+                      <span className="font-mono text-xs text-[var(--dn-text-70)]">
                         {entry.target_type} {entry.target_id.slice(0, 8)}…
                       </span>
                     )
                   ) : null}
-                  <span className="ml-auto text-xs text-ink-mute">
-                    by <span className="mono">{entry.admin_user_id.slice(0, 8)}…</span> ·{" "}
+                  <span className="ml-auto text-xs text-[var(--dn-text-50)]">
+                    by <span className="font-mono">{entry.admin_user_id.slice(0, 8)}…</span> ·{" "}
                     <RelativeTime value={entry.created_at} />
                   </span>
                 </div>
                 {diffSummary(entry.payload) ? (
-                  <p className="text-xs text-ink-soft mono mt-1.5">
+                  <p className="text-xs text-[var(--dn-text-70)] font-mono mt-1.5">
                     {diffSummary(entry.payload)}
                   </p>
                 ) : null}
@@ -99,18 +99,18 @@ export function AuditLogClient() {
             type="button"
             disabled={page === 0}
             onClick={() => setPage((p) => p - 1)}
-            className="rounded-full border border-glass-stroke px-3 py-1 disabled:opacity-40"
+            className="rounded-full border border-white/20 px-3 py-1 disabled:opacity-40"
           >
             ← Prev
           </button>
-          <span className="text-ink-mute mono text-xs">
+          <span className="text-[var(--dn-text-50)] font-mono text-xs">
             {page + 1} / {pages}
           </span>
           <button
             type="button"
             disabled={page + 1 >= pages}
             onClick={() => setPage((p) => p + 1)}
-            className="rounded-full border border-glass-stroke px-3 py-1 disabled:opacity-40"
+            className="rounded-full border border-white/20 px-3 py-1 disabled:opacity-40"
           >
             Next →
           </button>

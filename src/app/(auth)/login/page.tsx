@@ -10,15 +10,15 @@ export default async function LoginPage({
   const safeNext = safeNextPath(next);
 
   return (
-    <div className="glass rounded-3xl p-8">
-      <div className="mb-6">
-        <p className="text-xs uppercase tracking-[0.18em] text-accent mono">
+    <div className="dn-glass-card p-[clamp(1.75rem,3vw,2.75rem)]">
+      <div className="mb-6 text-center">
+        <p className="text-[clamp(0.62rem,0.8vw,0.78rem)] font-bold uppercase tracking-wide text-[var(--dn-text-50)]">
           upstream / admin
         </p>
-        <h1 className="display text-3xl font-semibold mt-2">
-          Sign <em>in</em>
+        <h1 className="mt-2 font-bold text-[clamp(1.8rem,3.2vw,2.5rem)] leading-tight">
+          Welcome <span className="dn-grad-text">back</span>
         </h1>
-        <p className="text-sm text-ink-soft mt-2">
+        <p className="mt-2 text-sm text-[var(--dn-text-50)]">
           Platform admin access only. Accounts are allowlisted —{" "}
           there is no self-service signup.
         </p>

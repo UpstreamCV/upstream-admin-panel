@@ -91,8 +91,8 @@ export function SystemHealthClient() {
         />
       </div>
 
-      <h2 className="display text-xl font-semibold mt-10 mb-4">
-        Streams <em>now</em>
+      <h2 className="font-bold text-[clamp(1.1rem,1.5vw,1.4rem)] mt-10 mb-4">
+        Streams <span className="dn-grad-text">now</span>
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatTile
@@ -105,7 +105,7 @@ export function SystemHealthClient() {
           }
           hint={
             streams ? (
-              <span className="mono">
+              <span className="font-mono">
                 {Object.entries(streams.by_state)
                   .map(([state, count]) => `${state}: ${count}`)
                   .join(" · ") || "none"}
@@ -130,21 +130,21 @@ export function SystemHealthClient() {
         />
       </div>
 
-      <div className="glass rounded-2xl px-5 py-4 mt-10 flex items-center gap-4 flex-wrap text-sm">
-        <span className="text-ink-mute mono text-xs uppercase tracking-wider">
+      <div className="dn-tile px-5 py-4 mt-10 flex items-center gap-4 flex-wrap text-sm">
+        <span className="text-[var(--dn-text-50)] font-mono text-xs uppercase tracking-wider">
           Drill in
         </span>
-        <Link href="/streams" className="text-accent hover:underline">
+        <Link href="/streams" className="text-[var(--dn-creek-mid)] hover:underline">
           All stream sessions →
         </Link>
-        <Link href="/accounts" className="text-accent hover:underline">
+        <Link href="/accounts" className="text-[var(--dn-creek-mid)] hover:underline">
           Accounts →
         </Link>
-        <Link href="/usage" className="text-accent hover:underline">
+        <Link href="/usage" className="text-[var(--dn-creek-mid)] hover:underline">
           Usage →
         </Link>
         {health ? (
-          <span className="ml-auto flex items-center gap-2 text-ink-mute text-xs">
+          <span className="ml-auto flex items-center gap-2 text-[var(--dn-text-50)] text-xs">
             api <StatusBadge status={health.api.status} />
           </span>
         ) : null}

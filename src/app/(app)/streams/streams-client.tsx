@@ -27,27 +27,27 @@ const COLUMNS: Column<AdminStreamItem>[] = [
     cell: (row) => (
       <span>
         {row.account_name}{" "}
-        <span className="text-ink-mute mono text-xs">/{row.account_slug}</span>
+        <span className="text-[var(--dn-text-50)] font-mono text-xs">/{row.account_slug}</span>
       </span>
     ),
   },
   {
     key: "camera",
     header: "Camera",
-    cell: (row) => row.camera_name ?? <span className="text-ink-mute">—</span>,
+    cell: (row) => row.camera_name ?? <span className="text-[var(--dn-text-50)]">—</span>,
   },
   {
     key: "heartbeat",
     header: "Last heartbeat",
     cell: (row) =>
       row.latest_heartbeat ? (
-        <span className="mono text-xs">
+        <span className="font-mono text-xs">
           {row.latest_heartbeat.fps?.toFixed(1) ?? "?"} fps ·{" "}
           {row.latest_heartbeat.bitrate_kbps ?? "?"} kbps ·{" "}
           <RelativeTime value={row.latest_heartbeat.reported_at} />
         </span>
       ) : (
-        <span className="text-ink-mute">—</span>
+        <span className="text-[var(--dn-text-50)]">—</span>
       ),
   },
   {
@@ -56,11 +56,11 @@ const COLUMNS: Column<AdminStreamItem>[] = [
     align: "center",
     cell: (row) =>
       row.latest_validation_passed === null ? (
-        <span className="text-ink-mute">—</span>
+        <span className="text-[var(--dn-text-50)]">—</span>
       ) : row.latest_validation_passed ? (
-        <span className="text-accent mono text-xs">pass</span>
+        <span className="text-[var(--dn-creek-mid)] font-mono text-xs">pass</span>
       ) : (
-        <span className="text-[#e89e93] mono text-xs">fail</span>
+        <span className="text-[#e89e93] font-mono text-xs">fail</span>
       ),
   },
   {
@@ -70,7 +70,7 @@ const COLUMNS: Column<AdminStreamItem>[] = [
       row.processor_status ? (
         <StatusBadge status={row.processor_status} />
       ) : (
-        <span className="text-ink-mute">—</span>
+        <span className="text-[var(--dn-text-50)]">—</span>
       ),
   },
   {
@@ -119,16 +119,16 @@ export function StreamsClient() {
               setPage(0);
             }}
             className={clsx(
-              "rounded-full px-3 py-1 text-xs mono uppercase tracking-wide transition border",
+              "rounded-full px-3 py-1 text-xs font-mono uppercase tracking-wide transition border",
               state === s
-                ? "bg-glass-bg border-glass-stroke text-ink"
-                : "border-transparent text-ink-soft hover:text-ink hover:bg-white/5",
+                ? "bg-[var(--dn-creek-mid)] border-transparent text-[#1c1610]"
+                : "border-transparent text-[var(--dn-text-70)] hover:text-[var(--dn-text)] hover:bg-white/5",
             )}
           >
             {s}
           </button>
         ))}
-        <span className="ml-auto text-xs text-ink-mute mono">
+        <span className="ml-auto text-xs text-[var(--dn-text-50)] font-mono">
           {isLoading ? "loading…" : `${total} session(s)`}
         </span>
       </div>
@@ -153,18 +153,18 @@ export function StreamsClient() {
             type="button"
             disabled={page === 0}
             onClick={() => setPage((p) => p - 1)}
-            className="rounded-full border border-glass-stroke px-3 py-1 disabled:opacity-40"
+            className="rounded-full border border-white/20 px-3 py-1 disabled:opacity-40"
           >
             ← Prev
           </button>
-          <span className="text-ink-mute mono text-xs">
+          <span className="text-[var(--dn-text-50)] font-mono text-xs">
             {page + 1} / {pages}
           </span>
           <button
             type="button"
             disabled={page + 1 >= pages}
             onClick={() => setPage((p) => p + 1)}
-            className="rounded-full border border-glass-stroke px-3 py-1 disabled:opacity-40"
+            className="rounded-full border border-white/20 px-3 py-1 disabled:opacity-40"
           >
             Next →
           </button>

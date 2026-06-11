@@ -20,14 +20,14 @@ const COLUMNS: Column<AdminAccountItem>[] = [
     header: "Account",
     cell: (row) => (
       <span>
-        {row.name} <span className="text-ink-mute mono text-xs">/{row.slug}</span>
+        {row.name} <span className="text-[var(--dn-text-50)] font-mono text-xs">/{row.slug}</span>
       </span>
     ),
   },
   {
     key: "plan",
     header: "Plan",
-    cell: (row) => <span className="mono text-xs uppercase">{row.plan}</span>,
+    cell: (row) => <span className="font-mono text-xs uppercase">{row.plan}</span>,
   },
   {
     key: "status",
@@ -43,9 +43,9 @@ const COLUMNS: Column<AdminAccountItem>[] = [
     align: "right",
     cell: (row) =>
       row.active_sessions > 0 ? (
-        <span className="text-accent mono">{row.active_sessions}</span>
+        <span className="text-[var(--dn-creek-mid)] font-mono">{row.active_sessions}</span>
       ) : (
-        <span className="text-ink-mute">0</span>
+        <span className="text-[var(--dn-text-50)]">0</span>
       ),
   },
   {
@@ -93,7 +93,7 @@ export function AccountsClient() {
             setPage(0);
           }}
           placeholder="Search name or slug…"
-          className="rounded-xl bg-glass-bg border border-glass-stroke px-3.5 py-2 text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:border-accent/60 transition w-64"
+          className="rounded-xl bg-white/[0.06] border border-white/20 px-3.5 py-2 text-sm text-[var(--dn-text)] placeholder:text-[var(--dn-text-50)] focus:outline-none focus:border-[var(--dn-creek-mid)] transition w-64"
         />
         <div className="flex items-center gap-1.5">
           {STATUSES.map((s) => (
@@ -105,17 +105,17 @@ export function AccountsClient() {
                 setPage(0);
               }}
               className={clsx(
-                "rounded-full px-3 py-1 text-xs mono uppercase tracking-wide transition border",
+                "rounded-full px-3 py-1 text-xs font-mono uppercase tracking-wide transition border",
                 status === s
-                  ? "bg-glass-bg border-glass-stroke text-ink"
-                  : "border-transparent text-ink-soft hover:text-ink hover:bg-white/5",
+                  ? "bg-[var(--dn-creek-mid)] border-transparent text-[#1c1610]"
+                  : "border-transparent text-[var(--dn-text-70)] hover:text-[var(--dn-text)] hover:bg-white/5",
               )}
             >
               {s}
             </button>
           ))}
         </div>
-        <span className="ml-auto text-xs text-ink-mute mono">
+        <span className="ml-auto text-xs text-[var(--dn-text-50)] font-mono">
           {isLoading ? "loading…" : `${total} account(s)`}
         </span>
       </div>
@@ -140,18 +140,18 @@ export function AccountsClient() {
             type="button"
             disabled={page === 0}
             onClick={() => setPage((p) => p - 1)}
-            className="rounded-full border border-glass-stroke px-3 py-1 disabled:opacity-40"
+            className="rounded-full border border-white/20 px-3 py-1 disabled:opacity-40"
           >
             ← Prev
           </button>
-          <span className="text-ink-mute mono text-xs">
+          <span className="text-[var(--dn-text-50)] font-mono text-xs">
             {page + 1} / {pages}
           </span>
           <button
             type="button"
             disabled={page + 1 >= pages}
             onClick={() => setPage((p) => p + 1)}
-            className="rounded-full border border-glass-stroke px-3 py-1 disabled:opacity-40"
+            className="rounded-full border border-white/20 px-3 py-1 disabled:opacity-40"
           >
             Next →
           </button>

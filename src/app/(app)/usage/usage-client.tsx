@@ -50,10 +50,10 @@ export function UsageClient() {
                 type="button"
                 onClick={() => setDays(r.days)}
                 className={clsx(
-                  "rounded-full px-3 py-1 text-xs mono uppercase tracking-wide transition border",
+                  "rounded-full px-3 py-1 text-xs font-mono uppercase tracking-wide transition border",
                   days === r.days
-                    ? "bg-glass-bg border-glass-stroke text-ink"
-                    : "border-transparent text-ink-soft hover:text-ink hover:bg-white/5",
+                    ? "bg-[var(--dn-creek-mid)] border-transparent text-[#1c1610]"
+                    : "border-transparent text-[var(--dn-text-70)] hover:text-[var(--dn-text)] hover:bg-white/5",
                 )}
               >
                 {r.label}
@@ -64,7 +64,7 @@ export function UsageClient() {
       />
 
       {isLoading && rows.length === 0 ? (
-        <p className="text-ink-mute text-sm">Loading…</p>
+        <p className="text-[var(--dn-text-50)] text-sm">Loading…</p>
       ) : rows.length === 0 ? (
         <EmptyState
           icon={BarChart3}
@@ -77,30 +77,30 @@ export function UsageClient() {
             const max = Math.max(...groupRows.map((r) => r.total_quantity), 1);
             return (
               <section key={metric}>
-                <h2 className="display text-lg font-semibold mb-3">
+                <h2 className="font-bold text-[clamp(1rem,1.3vw,1.25rem)] mb-3">
                   {metric.split(" (")[0]}{" "}
-                  <em>({metric.split(" (")[1]?.replace(")", "")})</em>
+                  <span className="dn-grad-text">({metric.split(" (")[1]?.replace(")", "")})</span>
                 </h2>
-                <div className="glass rounded-2xl p-4 space-y-2.5">
+                <div className="dn-tile p-4 space-y-2.5">
                   {groupRows.map((row) => (
                     <div key={row.account_id} className="text-sm">
                       <div className="flex items-center gap-3">
                         <Link
                           href={`/accounts/${row.account_id}`}
-                          className="hover:text-accent transition min-w-0 truncate"
+                          className="hover:text-[var(--dn-creek-mid)] transition min-w-0 truncate"
                         >
                           {row.account_name}{" "}
-                          <span className="text-ink-mute mono text-xs">
+                          <span className="text-[var(--dn-text-50)] font-mono text-xs">
                             /{row.account_slug} · {row.plan}
                           </span>
                         </Link>
-                        <span className="ml-auto mono text-xs">
+                        <span className="ml-auto font-mono text-xs">
                           {row.total_quantity.toLocaleString()}
                         </span>
                       </div>
                       <div className="h-1.5 rounded-full bg-white/5 mt-1.5 overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-accent/70"
+                          className="h-full rounded-full bg-[var(--dn-creek-mid)]"
                           style={{ width: `${(row.total_quantity / max) * 100}%` }}
                         />
                       </div>
