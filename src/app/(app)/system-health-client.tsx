@@ -2,14 +2,19 @@
 
 import clsx from "clsx";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { PageHeader } from "@/components/data/page-header";
-import { AreaSpark, BarSpark, GraphTile } from "@/components/data/spark";
+import { AreaSpark, BarSpark, GraphTile, UptimeStrip } from "@/components/data/spark";
 import { StatTile } from "@/components/data/stat-tile";
 import { StatusBadge } from "@/components/data/status-badge";
 import { RelativeTime } from "@/components/data/relative-time";
 import { useUpstreamList } from "@/lib/api/use-list";
-import type { AdminStreamsSummary, SystemHealth, SystemTimeseries } from "@/types/admin";
+import type {
+  AdminStreamsSummary,
+  HealthHistory,
+  SystemHealth,
+  SystemTimeseries,
+} from "@/types/admin";
 
 function componentTone(status: string): "positive" | "warn" | "danger" {
   if (status === "ok") return "positive";
@@ -22,8 +27,6 @@ const RANGES = [
   { hours: 72, label: "3d" },
   { hours: 168, label: "7d" },
 ] as const;
-
-const LATENCY_WINDOW = 40; // health polls kept for the live latency spark
 
 export function SystemHealthClient() {
   const { data: health } = useUpstreamList<SystemHealth>("/v1/admin/system/health", {
@@ -38,20 +41,13 @@ export function SystemHealthClient() {
     `/v1/admin/system/timeseries?hours=${hours}`,
     { refreshInterval: 60_000 },
   );
-
-  // Live DB-latency ring buffer fed by the 15s health poll — a this-tab
-  // view (latency history isn't persisted server-side).
-  const latencyRef = useRef<(number | null)[]>([]);
-  const [latency, setLatency] = useState<(number | null)[]>([]);
-  useEffect(() => {
-    if (!health) return;
-    const next = [
-      ...latencyRef.current,
-      health.database.status === "ok" ? health.database.latency_ms : null,
-    ].slice(-LATENCY_WINDOW);
-    latencyRef.current = next;
-    setLatency(next);
-  }, [health]);
+  // Server-collected samples (the API's in-process sampler loop) — shared
+  // across tabs and collected even when nobody is watching. The browser
+  // only refreshes the view; it doesn't drive the probes.
+  const { data: history } = useUpstreamList<HealthHistory>(
+    "/v1/admin/system/health/history?minutes=60",
+    { refreshInterval: 60_000 },
+  );
 
   const points = series?.points ?? [];
   const totalSessions = points.reduce((sum, p) => sum + p.sessions_started, 0);
@@ -59,7 +55,21 @@ export function SystemHealthClient() {
   const totalMinutes = points.reduce((sum, p) => sum + p.streaming_minutes, 0);
   const fpsValues = points.map((p) => p.avg_fps);
   const latestFps = [...fpsValues].reverse().find((v) => v !== null) ?? null;
-  const lastLatency = [...latency].reverse().find((v) => v !== null) ?? null;
+
+  const samples = history?.samples ?? [];
+  const latencyValues = samples.map((s) => (s.db_ok ? s.db_latency_ms : null));
+  const lastLatency = [...latencyValues].reverse().find((v) => v !== null) ?? null;
+  const uptimeStatuses = samples.map((s) =>
+    !s.db_ok || s.mediamtx_status === "error"
+      ? ("down" as const)
+      : s.mediamtx_status === "unreachable"
+        ? ("warn" as const)
+        : ("ok" as const),
+  );
+  const sessionValues = samples.map((s) => s.active_sessions);
+  const lastSessions = sessionValues.length
+    ? sessionValues[sessionValues.length - 1]
+    : null;
 
   return (
     <div>
@@ -190,13 +200,31 @@ export function SystemHealthClient() {
         </GraphTile>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
         <GraphTile
-          label="DB latency (live)"
-          headline={lastLatency !== null ? `${lastLatency} ms` : "…"}
-          hint={`last ${latency.length} polls · this tab only`}
+          label="DB latency"
+          headline={lastLatency !== null ? `${Math.round(lastLatency)} ms` : "…"}
+          hint="last hour · sampled server-side"
         >
-          <AreaSpark values={latency} height={36} />
+          <AreaSpark values={latencyValues} height={36} />
+        </GraphTile>
+        <GraphTile
+          label="Component uptime"
+          headline={
+            uptimeStatuses.length
+              ? `${Math.round((uptimeStatuses.filter((s) => s === "ok").length / uptimeStatuses.length) * 100)}%`
+              : "…"
+          }
+          hint="DB + streaming server · last hour"
+        >
+          <UptimeStrip statuses={uptimeStatuses} height={36} />
+        </GraphTile>
+        <GraphTile
+          label="Active sessions"
+          headline={lastSessions ?? "…"}
+          hint="last hour · sampled server-side"
+        >
+          <AreaSpark values={sessionValues} height={36} />
         </GraphTile>
       </div>
 
