@@ -25,6 +25,17 @@ export interface SystemHealth {
   };
 }
 
+export interface SystemTimeseries {
+  hours: number;
+  points: {
+    bucket: string;
+    sessions_started: number;
+    validation_failures: number;
+    streaming_minutes: number;
+    avg_fps: number | null;
+  }[];
+}
+
 // --- streams ---
 
 export interface AdminHeartbeat {

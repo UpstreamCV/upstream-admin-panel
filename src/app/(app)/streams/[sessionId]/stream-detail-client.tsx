@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { CopyButton } from "@/components/data/copy-button";
 import { PageHeader } from "@/components/data/page-header";
+import { AreaSpark, GraphTile } from "@/components/data/spark";
 import { RelativeTime } from "@/components/data/relative-time";
 import { StatusBadge } from "@/components/data/status-badge";
 import { proxyFetch } from "@/lib/api/client";
@@ -157,6 +158,31 @@ export function StreamDetailClient({ sessionId }: { sessionId: string }) {
         <SpecCard title="Approved" spec={data.approved} />
         <SpecCard title="Validated (ffprobe)" spec={data.validated} />
       </div>
+
+      {data.heartbeats.length >= 2 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          <GraphTile
+            label="FPS"
+            headline={data.heartbeats[0].fps?.toFixed(1) ?? "—"}
+            hint={`last ${data.heartbeats.length} heartbeats`}
+          >
+            <AreaSpark
+              values={[...data.heartbeats].reverse().map((hb) => hb.fps)}
+              height={40}
+            />
+          </GraphTile>
+          <GraphTile
+            label="Bitrate (kbps)"
+            headline={data.heartbeats[0].bitrate_kbps?.toLocaleString() ?? "—"}
+            hint={`last ${data.heartbeats.length} heartbeats`}
+          >
+            <AreaSpark
+              values={[...data.heartbeats].reverse().map((hb) => hb.bitrate_kbps)}
+              height={40}
+            />
+          </GraphTile>
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <section>
