@@ -107,6 +107,14 @@ async function handle(req: NextRequest, ctx: { params: Promise<{ path: string[] 
   for (const [k, v] of upstreamResponse.headers) {
     if (!HOP_BY_HOP.has(k.toLowerCase())) responseHeaders.set(k, v);
   }
+  // Bodyless statuses (DELETE -> 204 etc.): the Response constructor throws
+  // on a body — even an empty ArrayBuffer — with these codes.
+  if ([204, 205, 304].includes(upstreamResponse.status)) {
+    return new NextResponse(null, {
+      status: upstreamResponse.status,
+      headers: responseHeaders,
+    });
+  }
   const buf = await upstreamResponse.arrayBuffer();
   return new NextResponse(buf, {
     status: upstreamResponse.status,

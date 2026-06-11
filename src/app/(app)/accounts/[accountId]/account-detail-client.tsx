@@ -7,6 +7,7 @@ import { CopyButton } from "@/components/data/copy-button";
 import { PageHeader } from "@/components/data/page-header";
 import { RelativeTime } from "@/components/data/relative-time";
 import { StatusBadge } from "@/components/data/status-badge";
+import { IdentityCard, MembersCard, TokensCard } from "./manage-cards";
 import { proxyFetch } from "@/lib/api/client";
 import { UpstreamApiError } from "@/lib/api/errors";
 import { useUpstreamList } from "@/lib/api/use-list";
@@ -300,68 +301,23 @@ export function AccountDetailClient({ accountId }: { accountId: string }) {
             )}
           </div>
 
-          <div className="dn-tile px-5 py-4">
-            <p className="text-[11px] uppercase tracking-[0.14em] text-[var(--dn-text-50)] font-mono">
-              Members ({members.data?.members.length ?? "…"})
-            </p>
-            {members.data ? (
-              members.data.members.length === 0 ? (
-                <p className="text-sm text-[var(--dn-text-50)] mt-2">No members.</p>
-              ) : (
-                <ul className="mt-2 space-y-1.5">
-                  {members.data.members.map((m) => (
-                    <li key={m.user_id} className="flex items-center gap-3 text-sm">
-                      <span>{m.email ?? <span className="font-mono text-xs">{m.user_id}</span>}</span>
-                      <span className="text-[var(--dn-text-50)] font-mono text-xs uppercase">{m.role}</span>
-                      <span className="ml-auto text-[var(--dn-text-50)] text-xs">
-                        <RelativeTime value={m.created_at} />
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )
-            ) : (
-              <p className="text-sm text-[var(--dn-text-50)] mt-2">Loading…</p>
-            )}
-          </div>
+          <MembersCard
+            accountId={accountId}
+            members={members.data}
+            onChanged={() => void members.mutate()}
+          />
         </div>
 
         <div className="space-y-5">
+          <IdentityCard account={account} onChanged={refresh} />
+
           <LimitsCard accountId={accountId} limits={limits} onChanged={refresh} />
 
-          <div className="dn-tile px-5 py-4">
-            <p className="text-[11px] uppercase tracking-[0.14em] text-[var(--dn-text-50)] font-mono">
-              API tokens ({tokens.data?.tokens.length ?? "…"})
-            </p>
-            {tokens.data ? (
-              tokens.data.tokens.length === 0 ? (
-                <p className="text-sm text-[var(--dn-text-50)] mt-2">No tokens issued.</p>
-              ) : (
-                <ul className="mt-2 space-y-1.5">
-                  {tokens.data.tokens.map((t) => (
-                    <li key={t.id} className="flex items-center gap-3 text-sm">
-                      <span>{t.name}</span>
-                      <span className="text-[var(--dn-text-50)] font-mono text-xs">
-                        {t.prefix}…{t.last_four}
-                      </span>
-                      {t.revoked_at ? <StatusBadge status="revoked" /> : null}
-                      <span className="ml-auto text-[var(--dn-text-50)] text-xs">
-                        {t.last_used_at ? (
-                          <>
-                            used <RelativeTime value={t.last_used_at} />
-                          </>
-                        ) : (
-                          "never used"
-                        )}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )
-            ) : (
-              <p className="text-sm text-[var(--dn-text-50)] mt-2">Loading…</p>
-            )}
-          </div>
+          <TokensCard
+            accountId={accountId}
+            tokens={tokens.data}
+            onChanged={() => void tokens.mutate()}
+          />
         </div>
       </div>
     </div>

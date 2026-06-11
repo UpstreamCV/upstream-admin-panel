@@ -10,6 +10,7 @@ import { RelativeTime } from "@/components/data/relative-time";
 import { StatusBadge } from "@/components/data/status-badge";
 import { useUpstreamList } from "@/lib/api/use-list";
 import type { AdminAccountItem, AdminAccountList } from "@/types/admin";
+import { CreateAccountForm } from "./create-account-form";
 
 const STATUSES = ["all", "active", "suspended"] as const;
 const PAGE_SIZE = 50;
@@ -82,6 +83,7 @@ export function AccountsClient() {
         title="All"
         accent="accounts"
         description="Every tenant on the platform with member, device, and live-stream counts."
+        actions={<CreateAccountForm />}
       />
 
       <div className="flex items-center gap-3 mb-4 flex-wrap">

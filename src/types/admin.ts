@@ -199,6 +199,27 @@ export interface AdminUsageSummary {
   }[];
 }
 
+export interface AdminApiTokenCreateResponse {
+  token: AdminApiTokens["tokens"][number];
+  plaintext: string;
+}
+
+export interface AdminRecoveryLink {
+  email: string;
+  action_link: string;
+}
+
+// --- platform admins ---
+
+export interface AdminPlatformAdmins {
+  admins: {
+    user_id: string;
+    email: string | null;
+    note: string | null;
+    created_at: string;
+  }[];
+}
+
 // --- audit log ---
 
 export interface AdminAuditLog {
