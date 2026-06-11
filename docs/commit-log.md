@@ -4,6 +4,23 @@ Reverse chronological. Newest at top. Every meaningful commit gets an entry foll
 
 ---
 
+## 2026-06-11 - chore: real favicon set
+
+### Summary
+Installs the favicon.io package (ico + 16/32 png + apple-touch +
+android-chrome 192/512) into public/, fills in site.webmanifest with the
+panel's name and dark theme colors (#1c1610), and wires metadata.icons +
+manifest in the root layout (same shape as the dashboard's).
+
+### Files touched
+- `public/*` — icon assets + site.webmanifest.
+- `src/app/layout.tsx` — metadata.icons + manifest.
+
+### Testing/checks
+`npm run build` green.
+
+---
+
 ## 2026-06-11 - feat: system health graphs (sparklines, no chart lib)
 
 ### Summary
