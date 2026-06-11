@@ -11,6 +11,8 @@ export type Column<T> = {
   width?: string;
 };
 
+// Table grammar ported from the dashboard's tokens/sessions tables: a solid
+// .dn-tile wrapper, uppercase muted head row, faint row separators, hover wash.
 export function DataTable<T>({
   columns,
   rows,
@@ -29,16 +31,16 @@ export function DataTable<T>({
   if (rows.length === 0 && emptyState) return <>{emptyState}</>;
 
   return (
-    <div className="glass rounded-2xl overflow-hidden">
+    <div className="dn-tile overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full border-collapse text-[clamp(0.78rem,1vw,0.92rem)]">
           <thead>
-            <tr className="text-left text-ink-mute mono text-[11px] uppercase tracking-wider border-b border-glass-stroke-2">
+            <tr className="text-left text-[var(--dn-text-50)] text-[0.72em] uppercase tracking-wide font-bold [&>th]:whitespace-nowrap [&>th]:px-4 [&>th]:py-3">
               {columns.map((col) => (
                 <th
                   key={col.key}
                   className={clsx(
-                    "px-4 py-3 font-normal whitespace-nowrap",
+                    "font-bold",
                     col.align === "right" && "text-right",
                     col.align === "center" && "text-center",
                   )}
@@ -57,15 +59,15 @@ export function DataTable<T>({
                   key={rowKey(row)}
                   onClick={href ? () => router.push(href) : undefined}
                   className={clsx(
-                    "border-b border-glass-stroke-2/60 last:border-0 transition",
-                    href && "cursor-pointer hover:bg-white/5",
+                    "border-t border-[rgba(255,255,255,0.07)] transition-colors",
+                    "[&>td]:whitespace-nowrap [&>td]:px-4 [&>td]:py-3 [&>td]:align-middle",
+                    href && "cursor-pointer hover:bg-[rgba(255,255,255,0.04)]",
                   )}
                 >
                   {columns.map((col) => (
                     <td
                       key={col.key}
                       className={clsx(
-                        "px-4 py-3 text-ink align-middle",
                         col.align === "right" && "text-right",
                         col.align === "center" && "text-center",
                       )}

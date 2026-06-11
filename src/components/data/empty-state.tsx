@@ -12,11 +12,11 @@ export function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="glass rounded-3xl px-8 py-14 text-center">
-      <Icon className="w-7 h-7 mx-auto text-accent" />
-      <h3 className="display text-xl font-semibold mt-3">{title}</h3>
+    <div className="dn-tile px-8 py-14 text-center">
+      <Icon className="w-7 h-7 mx-auto text-[var(--dn-creek-mid)]" />
+      <h3 className="mt-3 text-xl font-bold">{title}</h3>
       {description ? (
-        <p className="text-sm text-ink-soft mt-3 max-w-prose mx-auto">
+        <p className="mt-3 mx-auto max-w-prose text-sm text-[var(--dn-text-50)]">
           {description}
         </p>
       ) : null}

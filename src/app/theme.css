@@ -1,0 +1,375 @@
+/* admin-panel theme — a DARK, gold-accented port of upstream-dashboard's
+ * `.dashboard-next` design system (src/app/dashboard/theme.css there).
+ *
+ * Token/class names are kept IDENTICAL to the source (--dn-* / .dn-*) so
+ * component class recipes copy across both repos unchanged; only the VALUES
+ * differ: the creek greens become golds/bronzes, white tiles become dark
+ * surfaces, and black text becomes warm off-white. The scope class is
+ * `.admin-panel` (wraps the whole app — there is no second theme here, the
+ * scope just keeps parity with the source architecture).
+ */
+
+.admin-panel {
+  /* Gold palette (replaces the dashboard's creek greens). `mid` is the
+     primary accent — the gold the brand leans on. */
+  --dn-creek-deep: #5c4716; /* deep bronze */
+  --dn-creek-mid: #d9a441; /* gold — primary accent */
+  --dn-creek-moss: #8a7445; /* muted bronze */
+  --dn-creek-dark: #15100a; /* near-black warm */
+
+  --dn-tile: #211a11; /* dark tile surface (was #ffffff) */
+  --dn-text: #f5f1e7;
+  --dn-text-70: rgba(245, 241, 231, 0.72);
+  --dn-text-50: rgba(245, 241, 231, 0.5);
+  --dn-text-15: rgba(245, 241, 231, 0.14);
+
+  --dn-radius-tile: clamp(18px, 1.6vw, 26px);
+  --dn-radius-panel: clamp(28px, 3vw, 52px);
+  --dn-shadow-tile: 0 18px 50px -20px rgba(0, 0, 0, 0.6);
+
+  /* Active nav label — bronze → gold → pale gold. */
+  --dn-grad-text: linear-gradient(
+    270deg,
+    var(--dn-creek-moss) 1%,
+    var(--dn-creek-mid) 74%,
+    #f0cf8a 148%
+  );
+  /* Primary action button — pale gold → gold → deep bronze. */
+  --dn-grad-btn: linear-gradient(
+    110deg,
+    #f0cf8a 4%,
+    var(--dn-creek-mid) 52%,
+    var(--dn-creek-deep) 112%
+  );
+  /* Shell backdrop — dark warm base; depth comes from the gold orbs. */
+  --dn-shell: #1c1610;
+
+  font-family:
+    var(--font-satoshi), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, sans-serif;
+  color: var(--dn-text);
+  color-scheme: dark;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Full-bleed dark wash behind the authed shell. */
+.admin-panel .dn-shell-bg {
+  background: var(--dn-shell);
+}
+
+/* The large frosted panel that holds the tile grid. Faint gold stroke so the
+   panel edge reads against the dark shell. */
+.admin-panel .dn-panel {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(217, 164, 65, 0.18);
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  border-radius: var(--dn-radius-panel);
+}
+
+/* Left navigation rail. */
+.admin-panel .dn-rail {
+  background: rgba(0, 0, 0, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  border-radius: clamp(22px, 2.4vw, 40px);
+}
+
+/* Solid dark metric card. */
+.admin-panel .dn-tile {
+  background: var(--dn-tile);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--dn-radius-tile);
+  box-shadow: var(--dn-shadow-tile);
+}
+
+/* "View X" pill inside a tile — white-alpha on dark (source used black-alpha
+   on white). */
+.admin-panel .dn-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--dn-text);
+  border-radius: clamp(10px, 0.9vw, 14px);
+  transition: background 0.15s ease;
+}
+.admin-panel .dn-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* Gradient-filled text (active nav label, heading accents). */
+.admin-panel .dn-grad-text {
+  background: var(--dn-grad-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Gradient primary button (login, Save). Dark label on gold for contrast. */
+.admin-panel .dn-grad-btn {
+  background: var(--dn-grad-btn);
+  color: #1c1610;
+  border: 1px solid rgba(240, 207, 138, 0.6);
+  border-radius: 9999px;
+}
+
+/* Cursor-tracking glow over the gradient button — pale-gold orb. */
+.admin-panel .dn-glow-btn {
+  position: relative;
+  overflow: hidden;
+}
+.admin-panel .dn-glow-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle 200px at var(--mx, 50%) var(--my, 50%),
+    rgba(240, 207, 138, 0.8),
+    rgba(240, 207, 138, 0) 70%
+  );
+  opacity: var(--glow, 0);
+  transition: opacity 0.18s ease;
+  pointer-events: none;
+}
+
+/* Soft gold cursor-proximity sheen for the translucent buttons (the source's
+   white sheen warms to gold so hovers carry the brand). */
+.admin-panel .dn-glow-soft {
+  position: relative;
+  overflow: hidden;
+}
+.admin-panel .dn-glow-soft::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle 90px at var(--mx, 50%) var(--my, 50%),
+    rgba(217, 164, 65, 0.35),
+    rgba(217, 164, 65, 0) 70%
+  );
+  opacity: var(--glow, 0);
+  transition: opacity 0.18s ease;
+  pointer-events: none;
+}
+
+/* Heavy frosted login card — alphas reduced from the source so the card stays
+   dark; the thick border keeps the signature look at a gold-tinted white. */
+.admin-panel .dn-glass-card {
+  position: relative;
+  border: clamp(6px, 0.7vw, 12px) solid rgba(240, 207, 138, 0.28);
+  border-radius: clamp(36px, 4vw, 60px);
+  background: radial-gradient(
+    120% 110% at 50% 45%,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.07) 55%,
+    rgba(217, 164, 65, 0.16) 100%
+  );
+  backdrop-filter: blur(30px) saturate(135%);
+  -webkit-backdrop-filter: blur(30px) saturate(135%);
+}
+
+/* Translucent pill inputs (login card, search/filter fields). */
+.admin-panel .dn-field {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 9999px;
+  color: var(--dn-text);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+.admin-panel .dn-field::placeholder {
+  color: rgba(245, 241, 231, 0.55);
+}
+.admin-panel .dn-field:focus {
+  outline: none;
+  border-color: rgba(217, 164, 65, 0.7);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Animated background orbs — same five drifting ellipses as the dashboard,
+   recolored gold/bronze and dimmed so the shell stays dark. Honors
+   prefers-reduced-motion. */
+.admin-panel .dn-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.admin-panel .dn-orb {
+  position: absolute;
+  width: clamp(420px, 46vw, 1000px);
+  height: clamp(380px, 40vw, 920px);
+  border-radius: 50%;
+  filter: blur(clamp(60px, 8vw, 130px));
+  opacity: 0.33;
+  will-change: transform;
+}
+.admin-panel .dn-orb-1 {
+  /* deep bronze · bottom-left */
+  background: var(--dn-creek-deep);
+  bottom: -20%;
+  left: -14%;
+  animation: dn-drift-1 17s ease-in-out -3s infinite;
+}
+.admin-panel .dn-orb-2 {
+  /* deep bronze · bottom-left */
+  background: var(--dn-creek-deep);
+  bottom: -24%;
+  left: 2%;
+  animation: dn-drift-2 31s ease-in-out -19s infinite;
+}
+.admin-panel .dn-orb-3 {
+  /* gold · top-left */
+  background: var(--dn-creek-mid);
+  top: -16%;
+  left: -6%;
+  animation: dn-drift-3 23s ease-in-out -7s infinite;
+}
+.admin-panel .dn-orb-4 {
+  /* bronze · top-right */
+  background: var(--dn-creek-moss);
+  top: -24%;
+  right: -12%;
+  animation: dn-drift-4 29s ease-in-out -11s infinite;
+}
+.admin-panel .dn-orb-5 {
+  /* bronze · top-right */
+  background: var(--dn-creek-moss);
+  top: -26%;
+  right: 3%;
+  animation: dn-drift-5 19s ease-in-out -25s infinite;
+}
+@keyframes dn-drift-1 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  25% {
+    transform: translate3d(16vw, -11vh, 0) scale(1.07);
+  }
+  50% {
+    transform: translate3d(24vw, 6vh, 0) scale(1.12);
+  }
+  75% {
+    transform: translate3d(9vw, 13vh, 0) scale(1.04);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+@keyframes dn-drift-2 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1.05);
+  }
+  25% {
+    transform: translate3d(10vw, 14vh, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(23vw, -3vh, 0) scale(1.1);
+  }
+  75% {
+    transform: translate3d(7vw, -15vh, 0) scale(1.03);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.05);
+  }
+}
+@keyframes dn-drift-3 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  25% {
+    transform: translate3d(18vw, 15vh, 0) scale(1.08);
+  }
+  50% {
+    transform: translate3d(28vw, 5vh, 0) scale(1.13);
+  }
+  75% {
+    transform: translate3d(11vw, 20vh, 0) scale(1.05);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+@keyframes dn-drift-4 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1.04);
+  }
+  25% {
+    transform: translate3d(-16vw, 11vh, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-26vw, 2vh, 0) scale(1.11);
+  }
+  75% {
+    transform: translate3d(-10vw, 15vh, 0) scale(1.03);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.04);
+  }
+}
+@keyframes dn-drift-5 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  25% {
+    transform: translate3d(-7vw, 16vh, 0) scale(1.05);
+  }
+  50% {
+    transform: translate3d(-21vw, 8vh, 0) scale(1.12);
+  }
+  75% {
+    transform: translate3d(-13vw, -9vh, 0) scale(1.03);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-panel .dn-orb {
+    animation: none !important;
+  }
+}
+
+/* Custom overlay scrollbar — identical mechanics to the dashboard. */
+.admin-panel .dn-scroll {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* old Edge */
+}
+.admin-panel .dn-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+.admin-panel .dn-bar-track {
+  --dn-thumb: 56px;
+  position: absolute;
+  top: var(--dn-radius-panel);
+  bottom: var(--dn-radius-panel);
+  right: 6px;
+  width: 6px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.09);
+  cursor: pointer;
+  z-index: 5;
+  transition: background 0.15s ease;
+}
+.admin-panel .dn-bar-track:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+.admin-panel .dn-bar-thumb {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: var(--dn-thumb);
+  border-radius: 9999px;
+  background: var(--dn-creek-mid);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}

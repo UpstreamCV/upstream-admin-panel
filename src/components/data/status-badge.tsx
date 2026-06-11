@@ -1,39 +1,40 @@
-import clsx from "clsx";
+import { StatusDot, type DotStatus } from "./status-dot";
 
-type Tone = "positive" | "warn" | "danger" | "neutral";
-
-const TONE_CLASSES: Record<Tone, string> = {
-  positive:
-    "bg-[rgba(95,184,134,0.14)] text-accent border-[rgba(95,184,134,0.35)]",
-  warn:
-    "bg-[rgba(212,201,138,0.14)] text-[#d4c98a] border-[rgba(212,201,138,0.4)]",
-  danger:
-    "bg-[rgba(225,90,76,0.16)] text-[#e89e93] border-[rgba(225,90,76,0.4)]",
-  neutral:
-    "bg-[rgba(245,241,231,0.06)] text-ink-soft border-glass-stroke",
-};
-
-const STATUS_TONE: Record<string, Tone> = {
-  // agents/cameras
-  active: "positive",
-  online: "positive",
-  streaming: "positive",
-  approved: "positive",
+// Status pill = halo dot + label, the dashboard-next table grammar. Same
+// component API as before (pages pass raw status strings).
+const STATUS_DOT: Record<string, DotStatus> = {
+  // healthy / active
+  active: "green",
+  online: "green",
+  streaming: "green",
+  approved: "green",
+  ok: "green",
+  processing: "green",
+  attached: "green",
+  // neutral / finished
   idle: "neutral",
   offline: "neutral",
   disabled: "neutral",
   ended: "neutral",
   expired: "neutral",
-  // transitional
-  validating: "warn",
-  reconnecting: "warn",
-  connecting: "warn",
-  pending: "warn",
+  stopped: "neutral",
+  info: "neutral",
+  // transitional / warning
+  validating: "yellow",
+  reconnecting: "yellow",
+  connecting: "yellow",
+  pending: "yellow",
+  starting: "yellow",
+  lagging: "yellow",
+  suspended: "yellow",
+  unreachable: "yellow",
+  warning: "yellow",
   // bad
-  error: "danger",
-  failed: "danger",
-  rejected: "danger",
-  revoked: "danger",
+  error: "red",
+  failed: "red",
+  rejected: "red",
+  revoked: "red",
+  critical: "red",
 };
 
 export function StatusBadge({
@@ -43,26 +44,13 @@ export function StatusBadge({
   status: string;
   className?: string;
 }) {
-  const tone = STATUS_TONE[status] ?? "neutral";
   return (
     <span
       role="status"
       aria-label={`Status: ${status}`}
-      className={clsx(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] tracking-wide mono uppercase",
-        TONE_CLASSES[tone],
-        className,
-      )}
+      className={`inline-flex items-center gap-1.5 text-[clamp(0.72rem,0.9vw,0.85rem)] font-bold ${className ?? ""}`}
     >
-      <span
-        className={clsx(
-          "w-1.5 h-1.5 rounded-full",
-          tone === "positive" && "bg-accent",
-          tone === "warn" && "bg-[#d4c98a]",
-          tone === "danger" && "bg-[#e89e93]",
-          tone === "neutral" && "bg-ink-mute",
-        )}
-      />
+      <StatusDot status={STATUS_DOT[status] ?? "neutral"} />
       {status}
     </span>
   );

@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { Toaster } from "sonner";
 import "./globals.css";
+import "./theme.css";
+import { satoshi } from "./fonts";
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#181209",
+  themeColor: "#1c1610",
 };
 
 export const metadata: Metadata = {
@@ -20,21 +22,22 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        {children}
-        <Toaster
-          position="bottom-right"
-          theme="dark"
-          richColors
-          closeButton
-          toastOptions={{
-            style: {
-              background: "rgba(24, 18, 9, 0.92)",
-              border: "1px solid rgba(245, 241, 231, 0.14)",
-              color: "var(--ink)",
-              backdropFilter: "blur(22px) saturate(140%)",
-            },
-          }}
-        />
+        <div className={`${satoshi.variable} admin-panel`}>
+          {children}
+          <Toaster
+            position="bottom-right"
+            theme="dark"
+            richColors
+            closeButton
+            toastOptions={{
+              style: {
+                background: "#211a11",
+                border: "1px solid rgba(217, 164, 65, 0.3)",
+                color: "#f5f1e7",
+              },
+            }}
+          />
+        </div>
       </body>
     </html>
   );
