@@ -11,6 +11,7 @@ import { RelativeTime } from "@/components/data/relative-time";
 import { useUpstreamList } from "@/lib/api/use-list";
 import type {
   AdminStreamsSummary,
+  ControlPlaneMetrics,
   HealthHistory,
   SystemHealth,
   SystemTimeseries,
@@ -20,6 +21,17 @@ function componentTone(status: string): "positive" | "warn" | "danger" {
   if (status === "ok") return "positive";
   if (status === "unreachable") return "warn";
   return "danger";
+}
+
+/** "3d 4h" / "2h 15m" / "45m" — coarse on purpose; it answers "did the
+ * process restart recently", not "how many seconds exactly". */
+function formatUptime(seconds: number): string {
+  const days = Math.floor(seconds / 86_400);
+  const hours = Math.floor((seconds % 86_400) / 3_600);
+  const minutes = Math.floor((seconds % 3_600) / 60);
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
 }
 
 const RANGES = [
@@ -48,6 +60,12 @@ export function SystemHealthClient() {
     "/v1/admin/system/health/history?minutes=60",
     { refreshInterval: 60_000 },
   );
+  // Control-plane counters from the API's in-process Prometheus registry
+  // (the same data the monitoring box scrapes). Reset on API restart.
+  const { data: metrics } = useUpstreamList<ControlPlaneMetrics>(
+    "/v1/admin/system/metrics",
+    { refreshInterval: 15_000 },
+  );
 
   const points = series?.points ?? [];
   const totalSessions = points.reduce((sum, p) => sum + p.sessions_started, 0);
@@ -55,6 +73,12 @@ export function SystemHealthClient() {
   const totalMinutes = points.reduce((sum, p) => sum + p.streaming_minutes, 0);
   const fpsValues = points.map((p) => p.avg_fps);
   const latestFps = [...fpsValues].reverse().find((v) => v !== null) ?? null;
+  const totalAlerts = points.reduce((sum, p) => sum + p.alerts_fired, 0);
+  const totalWorkflowRuns = points.reduce((sum, p) => sum + p.workflow_runs, 0);
+  const totalObjects = points.reduce((sum, p) => sum + p.objects_detected, 0);
+  const confidenceValues = points.map((p) => p.avg_detection_confidence);
+  const latestConfidence =
+    [...confidenceValues].reverse().find((v) => v !== null) ?? null;
 
   const samples = history?.samples ?? [];
   const latencyValues = samples.map((s) => (s.db_ok ? s.db_latency_ms : null));
@@ -198,6 +222,42 @@ export function SystemHealthClient() {
         >
           <AreaSpark values={fpsValues} />
         </GraphTile>
+        <GraphTile
+          label="Alerts fired"
+          headline={
+            series ? (
+              <span className={totalAlerts > 0 ? "text-[#eedc68]" : undefined}>
+                {totalAlerts}
+              </span>
+            ) : (
+              "…"
+            )
+          }
+          hint={`per hour · last ${hours}h`}
+        >
+          <BarSpark values={points.map((p) => p.alerts_fired)} color="#eedc68" />
+        </GraphTile>
+        <GraphTile
+          label="Workflow runs"
+          headline={series ? totalWorkflowRuns.toLocaleString() : "…"}
+          hint={`per hour · last ${hours}h`}
+        >
+          <BarSpark values={points.map((p) => p.workflow_runs)} />
+        </GraphTile>
+        <GraphTile
+          label="Objects detected"
+          headline={series ? totalObjects.toLocaleString() : "…"}
+          hint={`per hour · last ${hours}h`}
+        >
+          <AreaSpark values={points.map((p) => p.objects_detected)} />
+        </GraphTile>
+        <GraphTile
+          label="Detection confidence"
+          headline={latestConfidence !== null ? latestConfidence.toFixed(2) : "—"}
+          hint={`hourly avg · gaps = no detections`}
+        >
+          <AreaSpark values={confidenceValues} />
+        </GraphTile>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
@@ -226,6 +286,104 @@ export function SystemHealthClient() {
         >
           <AreaSpark values={sessionValues} height={36} />
         </GraphTile>
+      </div>
+
+      <div className="flex items-center justify-between mt-10 mb-4 flex-wrap gap-2">
+        <h2 className="font-bold text-[clamp(1.1rem,1.5vw,1.4rem)]">
+          Control <span className="dn-grad-text">plane</span>
+        </h2>
+        <span className="text-xs font-mono text-[var(--dn-text-50)]">
+          {metrics
+            ? `counters since API restart · up ${formatUptime(metrics.process_uptime_seconds)}`
+            : "counters since API restart"}
+        </span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatTile
+          label="Ingest webhooks"
+          tone={
+            !metrics
+              ? "neutral"
+              : metrics.ingest_webhooks.server_error > 0
+                ? "danger"
+                : metrics.ingest_webhooks.client_error > 0
+                  ? "warn"
+                  : "positive"
+          }
+          value={
+            metrics
+              ? (
+                  metrics.ingest_webhooks.ok +
+                  metrics.ingest_webhooks.client_error +
+                  metrics.ingest_webhooks.server_error
+                ).toLocaleString()
+              : "…"
+          }
+          hint={
+            metrics ? (
+              <span className="font-mono">
+                {metrics.ingest_webhooks.ok.toLocaleString()} ok ·{" "}
+                {metrics.ingest_webhooks.client_error} 4xx ·{" "}
+                {metrics.ingest_webhooks.server_error} 5xx
+              </span>
+            ) : undefined
+          }
+        />
+        <StatTile
+          label="Stream auth"
+          tone={
+            !metrics ? "neutral" : metrics.stream_auth.denied > 0 ? "warn" : "positive"
+          }
+          value={metrics ? metrics.stream_auth.allowed.toLocaleString() : "…"}
+          hint={
+            metrics ? (
+              <span className="font-mono">
+                allowed · {metrics.stream_auth.denied} denied
+              </span>
+            ) : undefined
+          }
+        />
+        <StatTile
+          label="Time to streaming"
+          tone={
+            !metrics || metrics.time_to_streaming.p95_seconds === null
+              ? "neutral"
+              : // SLI from the observability design doc: p95 < 8 s.
+                metrics.time_to_streaming.p95_seconds < 8
+                ? "positive"
+                : "warn"
+          }
+          value={
+            metrics
+              ? metrics.time_to_streaming.p95_seconds !== null
+                ? `${metrics.time_to_streaming.p95_seconds.toFixed(1)}s`
+                : "—"
+              : "…"
+          }
+          hint={
+            metrics ? (
+              <span className="font-mono">
+                p95 · p50 {metrics.time_to_streaming.p50_seconds?.toFixed(1) ?? "—"}s ·{" "}
+                {metrics.time_to_streaming.count} session(s)
+              </span>
+            ) : undefined
+          }
+        />
+        <StatTile
+          label="Sessions failed"
+          tone={
+            !metrics ? "neutral" : metrics.sessions_failed_total > 0 ? "warn" : "positive"
+          }
+          value={metrics ? metrics.sessions_failed_total : "…"}
+          hint={
+            metrics ? (
+              <span className="font-mono">
+                of {metrics.session_transitions_total.toLocaleString()} transitions ·
+                pool {metrics.db_pool.in_use}/{metrics.db_pool.size}
+              </span>
+            ) : undefined
+          }
+        />
       </div>
 
       <h2 className="font-bold text-[clamp(1.1rem,1.5vw,1.4rem)] mt-10 mb-4">
