@@ -33,7 +33,27 @@ export interface SystemTimeseries {
     validation_failures: number;
     streaming_minutes: number;
     avg_fps: number | null;
+    alerts_fired: number;
+    workflow_runs: number;
+    objects_detected: number;
+    avg_detection_confidence: number | null;
   }[];
+}
+
+// Counters parsed from the API's in-process Prometheus registry. Values are
+// process-lifetime — they reset when the API restarts, hence the uptime.
+export interface ControlPlaneMetrics {
+  process_uptime_seconds: number;
+  ingest_webhooks: { ok: number; client_error: number; server_error: number };
+  stream_auth: { allowed: number; denied: number };
+  session_transitions_total: number;
+  sessions_failed_total: number;
+  time_to_streaming: {
+    count: number;
+    p50_seconds: number | null;
+    p95_seconds: number | null;
+  };
+  db_pool: { size: number; in_use: number };
 }
 
 export interface HealthHistory {

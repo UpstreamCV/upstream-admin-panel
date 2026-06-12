@@ -4,6 +4,38 @@ Reverse chronological. Newest at top. Every meaningful commit gets an entry foll
 
 ---
 
+## 2026-06-11 - feat: control-plane tiles + alerts/workflows/detections graphs
+
+### Summary
+System page reads the API's new control-plane counter snapshot
+(`GET /v1/admin/system/metrics`, the parsed view of the in-process
+Prometheus registry from M9.3) and the four new hourly timeseries.
+Activity history grows from 4 to 8 graphs: Alerts fired, Workflow runs,
+Objects detected, Detection confidence (nullable — gaps mean no
+detections, not zero confidence), all on the existing 24h/3d/7d
+switcher. New "Control plane" section: Ingest webhooks (ok/4xx/5xx,
+red dot on any 5xx), Stream auth (allowed/denied, yellow on denial),
+Time to streaming (p95 vs the 8 s SLI from observability doc 01 §5),
+Sessions failed (of total transitions, plus db pool in-use/size). The
+section header shows "counters since API restart · up Xd Yh" because
+the registry resets on restart — also a cheap restart detector. Tiles
+render "…"/— until the API ships the endpoint (404s degrade quietly).
+
+### Files touched
+- `src/types/admin.ts` — `ControlPlaneMetrics`; `SystemTimeseries`
+  points gain alerts_fired, workflow_runs, objects_detected,
+  avg_detection_confidence.
+- `src/app/(app)/system-health-client.tsx` — metrics fetch (15 s
+  refresh), 4 new GraphTiles, Control plane StatTile section,
+  `formatUptime`.
+
+### Testing/checks
+`npx tsc --noEmit`, `npm run lint`, `npm run build` all green.
+Requires upstream-api-server commit "feat(admin): control-plane
+metrics endpoint + richer system timeseries" deployed for live data.
+
+---
+
 ## 2026-06-11 - chore: real favicon set
 
 ### Summary
