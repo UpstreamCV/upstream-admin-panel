@@ -4,6 +4,33 @@ Reverse chronological. Newest at top. Every meaningful commit gets an entry foll
 
 ---
 
+## 2026-06-11 - fix: NaN tiles under API version skew + API runtime params
+
+### Summary
+The previous commit assumed the deployed API already returned the new
+timeseries fields; against the still-undeployed production API the new
+graph tiles summed `undefined` and rendered NaN. Skew is structural
+(Netlify auto-deploys the panel on push; the API deploys manually on
+EC2), so the panel now treats the new fields as optional: `?? 0` /
+`?? null` at every use, and the spark components coerce non-finite
+values to gaps/empty slots as a last line of defense.
+
+Also renders the API's new `runtime` health params on the API tile —
+"v0.x · production · up 2d 3h · 142 MB · load 0.12" — fields appear as
+the deployed API starts reporting them.
+
+### Files touched
+- `src/types/admin.ts` — timeseries new fields optional; `api.runtime`.
+- `src/app/(app)/system-health-client.tsx` — null-coalesced sums/spark
+  inputs; API tile hint composes runtime params.
+- `src/components/data/spark.tsx` — AreaSpark/BarSpark sanitize
+  non-finite input.
+
+### Testing/checks
+`npx tsc --noEmit`, `npm run lint`, `npm run build` all green.
+
+---
+
 ## 2026-06-11 - feat: control-plane tiles + alerts/workflows/detections graphs
 
 ### Summary

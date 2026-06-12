@@ -10,7 +10,17 @@ export interface AdminMe {
 // --- system health ---
 
 export interface SystemHealth {
-  api: { status: string; version: string; environment: string };
+  api: {
+    status: string;
+    version: string;
+    environment: string;
+    // Absent on API builds older than the control-plane metrics commit.
+    runtime?: {
+      uptime_seconds: number | null;
+      memory_rss_mb: number | null;
+      load_1m: number | null;
+    } | null;
+  };
   database: { status: "ok" | "error"; latency_ms: number | null; error: string | null };
   streaming_server: {
     status: "ok" | "unreachable" | "error";
@@ -33,10 +43,13 @@ export interface SystemTimeseries {
     validation_failures: number;
     streaming_minutes: number;
     avg_fps: number | null;
-    alerts_fired: number;
-    workflow_runs: number;
-    objects_detected: number;
-    avg_detection_confidence: number | null;
+    // Optional: absent on API builds older than the control-plane metrics
+    // commit (the panel deploys from Netlify on push; the API deploys
+    // manually on EC2 — skew is normal, NaN is not).
+    alerts_fired?: number;
+    workflow_runs?: number;
+    objects_detected?: number;
+    avg_detection_confidence?: number | null;
   }[];
 }
 
