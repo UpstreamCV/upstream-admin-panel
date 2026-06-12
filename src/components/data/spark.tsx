@@ -16,20 +16,25 @@ export function AreaSpark({
   height?: number;
 }) {
   const width = 100;
-  const nums = values.filter((v): v is number => v !== null);
-  if (values.length < 2 || nums.length === 0) {
+  // Treat anything non-finite (undefined from an older API, NaN from a bad
+  // sum) as a gap — one poisoned point must not blank the whole chart.
+  const cleaned = values.map((v) =>
+    typeof v === "number" && Number.isFinite(v) ? v : null,
+  );
+  const nums = cleaned.filter((v): v is number => v !== null);
+  if (cleaned.length < 2 || nums.length === 0) {
     return <EmptySpark height={height} />;
   }
   const max = Math.max(...nums, 1e-9);
   const min = Math.min(...nums, 0);
   const range = max - min || 1;
-  const x = (i: number) => (i / (values.length - 1)) * width;
+  const x = (i: number) => (i / (cleaned.length - 1)) * width;
   const y = (v: number) => 4 + (1 - (v - min) / range) * (height - 8);
 
   // Split into contiguous non-null segments so gaps stay gaps.
   const segments: { i: number; v: number }[][] = [];
   let current: { i: number; v: number }[] = [];
-  values.forEach((v, i) => {
+  cleaned.forEach((v, i) => {
     if (v === null) {
       if (current.length) segments.push(current);
       current = [];
@@ -83,8 +88,10 @@ export function BarSpark({
 }) {
   const width = 100;
   if (values.length === 0) return <EmptySpark height={height} />;
-  const max = Math.max(...values, 1);
-  const slot = width / values.length;
+  // Same posture as AreaSpark: non-finite input renders as an empty slot.
+  const cleaned = values.map((v) => (Number.isFinite(v) ? v : 0));
+  const max = Math.max(...cleaned, 1);
+  const slot = width / cleaned.length;
   const barWidth = Math.max(slot * 0.6, 0.5);
 
   return (
@@ -95,7 +102,7 @@ export function BarSpark({
       style={{ height }}
       aria-hidden
     >
-      {values.map((v, i) => {
+      {cleaned.map((v, i) => {
         const barHeight = v === 0 ? 1 : Math.max((v / max) * (height - 6), 1.5);
         return (
           <rect

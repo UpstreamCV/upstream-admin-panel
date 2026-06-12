@@ -73,10 +73,13 @@ export function SystemHealthClient() {
   const totalMinutes = points.reduce((sum, p) => sum + p.streaming_minutes, 0);
   const fpsValues = points.map((p) => p.avg_fps);
   const latestFps = [...fpsValues].reverse().find((v) => v !== null) ?? null;
-  const totalAlerts = points.reduce((sum, p) => sum + p.alerts_fired, 0);
-  const totalWorkflowRuns = points.reduce((sum, p) => sum + p.workflow_runs, 0);
-  const totalObjects = points.reduce((sum, p) => sum + p.objects_detected, 0);
-  const confidenceValues = points.map((p) => p.avg_detection_confidence);
+  // `?? 0` / `?? null`: an older API build omits these fields entirely (the
+  // panel auto-deploys from Netlify; the API deploys manually on EC2), and
+  // summing undefined renders NaN tiles.
+  const totalAlerts = points.reduce((sum, p) => sum + (p.alerts_fired ?? 0), 0);
+  const totalWorkflowRuns = points.reduce((sum, p) => sum + (p.workflow_runs ?? 0), 0);
+  const totalObjects = points.reduce((sum, p) => sum + (p.objects_detected ?? 0), 0);
+  const confidenceValues = points.map((p) => p.avg_detection_confidence ?? null);
   const latestConfidence =
     [...confidenceValues].reverse().find((v) => v !== null) ?? null;
 
@@ -109,7 +112,24 @@ export function SystemHealthClient() {
           label="API"
           tone={health ? componentTone(health.api.status) : "neutral"}
           value={health ? health.api.status : "…"}
-          hint={health ? `v${health.api.version} · ${health.api.environment}` : undefined}
+          hint={
+            health
+              ? [
+                  `v${health.api.version} · ${health.api.environment}`,
+                  health.api.runtime?.uptime_seconds != null
+                    ? `up ${formatUptime(health.api.runtime.uptime_seconds)}`
+                    : null,
+                  health.api.runtime?.memory_rss_mb != null
+                    ? `${Math.round(health.api.runtime.memory_rss_mb)} MB`
+                    : null,
+                  health.api.runtime?.load_1m != null
+                    ? `load ${health.api.runtime.load_1m.toFixed(2)}`
+                    : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")
+              : undefined
+          }
         />
         <StatTile
           label="Database"
@@ -235,21 +255,21 @@ export function SystemHealthClient() {
           }
           hint={`per hour · last ${hours}h`}
         >
-          <BarSpark values={points.map((p) => p.alerts_fired)} color="#eedc68" />
+          <BarSpark values={points.map((p) => p.alerts_fired ?? 0)} color="#eedc68" />
         </GraphTile>
         <GraphTile
           label="Workflow runs"
           headline={series ? totalWorkflowRuns.toLocaleString() : "…"}
           hint={`per hour · last ${hours}h`}
         >
-          <BarSpark values={points.map((p) => p.workflow_runs)} />
+          <BarSpark values={points.map((p) => p.workflow_runs ?? 0)} />
         </GraphTile>
         <GraphTile
           label="Objects detected"
           headline={series ? totalObjects.toLocaleString() : "…"}
           hint={`per hour · last ${hours}h`}
         >
-          <AreaSpark values={points.map((p) => p.objects_detected)} />
+          <AreaSpark values={points.map((p) => p.objects_detected ?? 0)} />
         </GraphTile>
         <GraphTile
           label="Detection confidence"
