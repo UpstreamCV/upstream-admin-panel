@@ -28,3 +28,10 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          # Compile-time NEXT_PUBLIC_* presence checks (src config validates
+          # these at build). Placeholders are fine: they are public-by-design
+          # values and the CI build artifact is never deployed.
+          NEXT_PUBLIC_UPSTREAM_API_URL: https://ci-placeholder.invalid
+          NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
