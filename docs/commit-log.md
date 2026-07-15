@@ -4,6 +4,69 @@ Reverse chronological. Newest at top. Every meaningful commit gets an entry foll
 
 ---
 
+## 2026-07-15 - style: re-sync admin chrome to the dashboard's current dark redesign
+
+### Summary
+The admin panel's chrome was ported from an OLD version of
+upstream-dashboard's `.dashboard-next` design system; the dashboard has
+since been re-skinned (2026-06-15 "DarkMode" redesign). This re-syncs the
+admin shell to that current look so it feels like the live product
+dashboard — while KEEPING the admin's signature gold/orange accent
+(`--dn-creek-mid: #d9a441`) per request. Changes are chrome-only; no page
+logic, data, or routes touched.
+
+What changed to match the dashboard:
+- **Side panel**: the fixed, container-boxed rail became a NO-container
+  hover-expand icon dock (`.dn-rail-dock`) — collapses to centered icons,
+  expands to the labelled rail on hover with a smooth width transition
+  that reflows the content panel. JS-driven open state (module-scoped
+  `railOpen` + pointer hit-test) so it stays open after a nav click under
+  a stationary cursor. Active pill is a solid GOLD pill (near-black
+  icon/label) — the brand counterpart of the dashboard's white pill.
+- **Animations**: orbs now drift on JS-driven RANDOM targets (eased by a
+  20s CSS transition) instead of fixed CSS keyframe loops; added the
+  dashboard's film-grain overlay; glass buttons (`.dn-glow-soft`) gained
+  the always-on frost + magnetic cursor lean (`--dn-tx/--dn-ty`) +
+  hover-only gold sheen, replacing the old proximity glow.
+- **Panel/surfaces**: `.dn-panel` became the frosted black-scrim + subtle
+  white stroke (was a white-alpha fill + gold stroke); tiles use the
+  dashboard's inset-rim shadow. Added `--dn-*` parity tokens (status
+  accents, `--dn-tab-fill`, `--dn-base`, radii) and parity classes
+  (`.dn-card`, `.dn-tab*`, `.dn-panel-square`).
+- **Chrome fix**: backdrop-filter values are now wrapped in
+  `var(--bf-…, <value>)` so Tailwind v4's Lightning CSS can't strip the
+  unprefixed property (Chrome silently drops the blur otherwise) — same
+  guard the dashboard + upstream-web use.
+
+### Files touched
+- `src/app/theme.css` — full re-sync to the current dashboard system
+  (gold-tinted): dock rail, frosted scrim panel, JS-drift orbs + grain,
+  magnetic glass buttons, `var(--bf-…)` guards, parity tokens/classes.
+- `src/components/chrome/shell-backdrop.tsx` — now a client component that
+  hands each orb a fresh random target on a jittered interval (ported).
+- `src/components/chrome/cursor-glow.tsx` — magnetic-lean + hover-sheen
+  controller (`--dn-tx/--dn-ty`, `--mx/--my`), hover-gated (ported).
+- `src/components/chrome/sidebar.tsx` — hover-expand icon-dock rail (admin
+  nav, gold active pill, no identity block — identity stays in Topbar).
+- `src/app/(app)/layout.tsx` — dropped the rail↔panel gap so the dock
+  reflow physics read; refreshed the header comment.
+
+### System interaction notes
+Presentation only. The auth gate (`/v1/admin/me`), proxy, `serverFetch`,
+and every page component are unchanged; the reskin is confined to the
+`.admin-panel` theme scope + the three chrome components + the shell
+layout wiring.
+
+### Testing/checks
+`npx tsc --noEmit`, `npm run lint`, `npm run build`.
+
+### Follow-up TODOs
+- Admin has no SectionTabs today; `.dn-tab*` / `.dn-card` ship for recipe
+  parity with the dashboard and are unused until a tabbed admin section
+  lands.
+
+---
+
 ## 2026-06-11 - fix: NaN tiles under API version skew + API runtime params
 
 ### Summary

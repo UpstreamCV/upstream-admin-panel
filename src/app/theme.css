@@ -1,31 +1,74 @@
 /* admin-panel theme — a DARK, gold-accented port of upstream-dashboard's
- * `.dashboard-next` design system (src/app/dashboard/theme.css there).
+ * `.dashboard-next` design system (src/app/(dash)/theme.css there).
+ *
+ * Re-synced 2026-07-15 to the dashboard's CURRENT "DarkMode" redesign so the
+ * admin shell feels like the live product dashboard: a soft black-scrim frosted
+ * panel over a warm near-black base lit by drifting orbs + film grain, a
+ * hover-expand icon-dock rail (no container), and magnetic glass buttons.
  *
  * Token/class names are kept IDENTICAL to the source (--dn-* / .dn-*) so
  * component class recipes copy across both repos unchanged; only the VALUES
- * differ: the creek greens become golds/bronzes, white tiles become dark
- * surfaces, and black text becomes warm off-white. The scope class is
- * `.admin-panel` (wraps the whole app — there is no second theme here, the
- * scope just keeps parity with the source architecture).
+ * differ: the creek greens become golds/bronzes (the admin's signature accent —
+ * kept per the brief), white surfaces become warm dark surfaces, and black text
+ * becomes warm off-white. The scope class is `.admin-panel` (wraps the whole
+ * app — there is no second theme here, the scope just keeps parity with the
+ * source architecture).
+ *
+ * CHROME NOTE: literal backdrop-filter values are wrapped in
+ * `var(--bf-…, <value>)` so Tailwind v4's Lightning CSS can't collapse them to
+ * the -webkit- prefix only (which Chrome ignores) — a bare literal silently
+ * drops the blur in Chrome. Mirrors the dashboard + upstream-web globals.css.
  */
 
 .admin-panel {
   /* Gold palette (replaces the dashboard's creek greens). `mid` is the
-     primary accent — the gold the brand leans on. */
+     primary accent — the gold the admin brand leans on (kept per the brief). */
   --dn-creek-deep: #5c4716; /* deep bronze */
   --dn-creek-mid: #d9a441; /* gold — primary accent */
   --dn-creek-moss: #8a7445; /* muted bronze */
   --dn-creek-dark: #15100a; /* near-black warm */
 
-  --dn-tile: #211a11; /* dark tile surface (was #ffffff) */
+  /* Dark surface system. Page base + tiles share the warm near-black; the
+     translucent panel scrim behind the tiles plus a faint inset rim on each
+     tile provide the separation (Figma redesign approach). */
+  --dn-base: #1c1610; /* page base (warm near-black) */
+  --dn-tile: #211a11; /* solid metric-card fill */
+  --dn-tile-soft: rgba(255, 255, 255, 0.03); /* softer card fill (.dn-card) */
+  /* Active chrome-tab fill — semi-transparent white (the glassy look), shared by
+     the tab body and its flared ears. */
+  --dn-tab-fill: rgba(255, 255, 255, 0.1);
   --dn-text: #f5f1e7;
   --dn-text-70: rgba(245, 241, 231, 0.72);
   --dn-text-50: rgba(245, 241, 231, 0.5);
-  --dn-text-15: rgba(245, 241, 231, 0.14);
+  --dn-text-40: rgba(245, 241, 231, 0.4);
+  --dn-text-15: rgba(245, 241, 231, 0.14); /* pill / button fill */
+
+  /* Status-accent system (matches the data components' hexes so dots, tiles,
+     and chips read consistently). *-soft are the 25%-alpha chip fills. */
+  --dn-red: #e15a4c; /* critical / failed / offline */
+  --dn-orange: #ff8f57; /* warning / degraded */
+  --dn-yellow: #eedc68; /* info / transitional / geometry */
+  --dn-yellow-dim: #eedc68;
+  --dn-green: #5fb869; /* healthy dots / icons */
+  --dn-green-text: #5fec62; /* healthy text */
+  --dn-grey: #414141; /* idle badge fill */
+  --dn-grey-dot: #9aa39a; /* idle / neutral dot */
+  --dn-red-soft: rgba(225, 90, 76, 0.25);
+  --dn-orange-soft: rgba(255, 143, 87, 0.25);
+  --dn-yellow-soft: rgba(238, 220, 104, 0.25);
+  --dn-live: rgba(95, 236, 98, 0.8); /* solid "Live" badge fill */
 
   --dn-radius-tile: clamp(18px, 1.6vw, 26px);
   --dn-radius-panel: clamp(28px, 3vw, 52px);
-  --dn-shadow-tile: 0 18px 50px -20px rgba(0, 0, 0, 0.6);
+  --dn-radius-inner: clamp(10px, 0.9vw, 14px); /* inner pills/mini-stats */
+  /* Parity with the dashboard rail's identity block; unused here (admin keeps a
+     separate topbar) but kept so recipes copy across unchanged. */
+  --dn-topbar-h: clamp(72px, 7vw, 104px);
+  /* Dark tiles get a faint top-edge rim to read against the scrim panel; the
+     broad ambient shadow stays soft. */
+  --dn-shadow-tile:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 24px 60px -30px rgba(0, 0, 0, 0.7);
 
   /* Active nav label — bronze → gold → pale gold. */
   --dn-grad-text: linear-gradient(
@@ -41,9 +84,10 @@
     var(--dn-creek-mid) 52%,
     var(--dn-creek-deep) 112%
   );
-  /* Shell backdrop — dark warm base; depth comes from the gold orbs. */
-  --dn-shell: #1c1610;
+  /* Shell backdrop — the warm dark base; depth comes from the drifting orbs. */
+  --dn-shell: var(--dn-base);
 
+  /* Own the cascade for this subtree only. */
   font-family:
     var(--font-satoshi), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     Roboto, sans-serif;
@@ -58,43 +102,124 @@
   background: var(--dn-shell);
 }
 
-/* The large frosted panel that holds the tile grid. Faint gold stroke so the
-   panel edge reads against the dark shell. */
+/* The large content panel that holds the tile grid — a translucent black scrim
+   that darkens the orbs behind it, moderately blurred so the drifting orbs +
+   grain read softly through it (the dashboard's frosted panel look). Admin's
+   panel FLOATS (topbar above, padded shell), so all four corners round and the
+   stroke wraps all sides. */
 .admin-panel .dn-panel {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(217, 164, 65, 0.18);
-  backdrop-filter: blur(28px) saturate(140%);
-  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  /* var()-wrapped so Lightning CSS keeps the unprefixed property (Chrome). */
+  -webkit-backdrop-filter: var(--bf-dn-panel, blur(16px) saturate(135%));
+  backdrop-filter: var(--bf-dn-panel, blur(16px) saturate(135%));
   border-radius: var(--dn-radius-panel);
 }
-
-/* Left navigation rail. */
-.admin-panel .dn-rail {
-  background: rgba(0, 0, 0, 0.32);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(22px) saturate(140%);
-  -webkit-backdrop-filter: blur(22px) saturate(140%);
-  border-radius: clamp(22px, 2.4vw, 40px);
+/* Parity with the dashboard's bleeding non-home panel; unused here (admin's
+   panel always floats), kept so the recipe copies across unchanged. */
+.admin-panel .dn-panel-square {
+  border-radius: 0;
 }
 
-/* Solid dark metric card. */
+/* The nav rail has NO container — the button pills sit directly on the shell
+   background. The rail collapses to an icon dock that expands to the full
+   labelled width on hover. It's in-flow (not an overlay): expanding widens THIS
+   element, so the content panel beside it reflows to make room — the width
+   transition slides it smoothly. */
+.admin-panel .dn-rail-dock {
+  /* 3.75rem = the 3rem centered icon-slot + the rail's 0.375rem×2 (px-1.5)
+     padding — a tight left/right margin. */
+  width: 3.75rem;
+  transition: width 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: width;
+}
+/* :hover is the pre-hydration fallback; [data-open] is the JS-driven state
+   (sidebar.tsx) that ALSO keeps the rail open right after a nav click, when the
+   browser won't re-fire :hover for a stationary cursor on the new page. */
+.admin-panel .dn-rail-dock:hover,
+.admin-panel .dn-rail-dock[data-open="true"] {
+  width: clamp(202px, 17vw, 256px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-panel .dn-rail-dock {
+    transition: none;
+  }
+}
+
+/* Solid warm-dark metric card. */
 .admin-panel .dn-tile {
   background: var(--dn-tile);
-  border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: var(--dn-radius-tile);
   box-shadow: var(--dn-shadow-tile);
 }
 
-/* "View X" pill inside a tile — white-alpha on dark (source used black-alpha
-   on white). */
+/* Chrome-style tabs (parity with the dashboard's SectionTabs/CameraTabs). The
+   active tab rounds at the TOP and FLARES at the bottom via two masked
+   quarter-circle "ears" — a browser tab fused to the content below. Unused by
+   the admin pages today (no section tabs), kept so the recipe copies across. */
+.admin-panel .dn-tab {
+  position: relative;
+  --dn-tab-r: 0.5rem;
+}
+.admin-panel .dn-tab-active {
+  background: var(--dn-tab-fill);
+}
+.admin-panel .dn-tab-active::before,
+.admin-panel .dn-tab-active::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: var(--dn-tab-r);
+  height: var(--dn-tab-r);
+  background: var(--dn-tab-fill);
+  pointer-events: none;
+}
+.admin-panel .dn-tab-active::before {
+  left: calc(-1 * var(--dn-tab-r));
+  -webkit-mask: radial-gradient(
+    circle at top left,
+    #0000 var(--dn-tab-r),
+    #000 calc(var(--dn-tab-r) + 0.5px)
+  );
+  mask: radial-gradient(
+    circle at top left,
+    #0000 var(--dn-tab-r),
+    #000 calc(var(--dn-tab-r) + 0.5px)
+  );
+}
+.admin-panel .dn-tab-active::after {
+  right: calc(-1 * var(--dn-tab-r));
+  -webkit-mask: radial-gradient(
+    circle at top right,
+    #0000 var(--dn-tab-r),
+    #000 calc(var(--dn-tab-r) + 0.5px)
+  );
+  mask: radial-gradient(
+    circle at top right,
+    #0000 var(--dn-tab-r),
+    #000 calc(var(--dn-tab-r) + 0.5px)
+  );
+}
+
+/* Softer translucent card. Frosted — blurs whatever sits behind it. */
+.admin-panel .dn-card {
+  background: var(--dn-tile-soft);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--dn-radius-tile);
+  -webkit-backdrop-filter: var(--bf-dn-card, blur(16px) saturate(120%));
+  backdrop-filter: var(--bf-dn-card, blur(16px) saturate(120%));
+}
+
+/* "View X" pill inside a tile. The glass sheen is HOVER-ONLY and comes from
+   .dn-glow-soft, which every glassy .dn-btn pairs with. */
 .admin-panel .dn-btn {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--dn-text-15);
   color: var(--dn-text);
-  border-radius: clamp(10px, 0.9vw, 14px);
+  border-radius: var(--dn-radius-inner);
   transition: background 0.15s ease;
 }
 .admin-panel .dn-btn:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.22);
 }
 
 /* Gradient-filled text (active nav label, heading accents). */
@@ -113,7 +238,9 @@
   border-radius: 9999px;
 }
 
-/* Cursor-tracking glow over the gradient button — pale-gold orb. */
+/* Cursor-tracking glow over the gradient button — pale-gold orb. Driven by
+   per-component pointer listeners that write --mx/--my/--glow (login-form.tsx,
+   create-account-form.tsx). Kept unchanged from the old theme. */
 .admin-panel .dn-glow-btn {
   position: relative;
   overflow: hidden;
@@ -134,11 +261,32 @@
   pointer-events: none;
 }
 
-/* Soft gold cursor-proximity sheen for the translucent buttons (the source's
-   white sheen warms to gold so hovers carry the brand). */
+/* The translucent glass buttons — the dark counterpart of upstream-web's
+   glass-pane + MagneticButton. These read as real frosted glass: the
+   backdrop-filter is ALWAYS on, so the button blurs whatever sits behind it (the
+   panel scrim + orbs). The hover FLOURISHES layer on top and are gated on real
+   :hover (never proximity):
+     • the frost deepens slightly,
+     • a gold highlight (::after) tracks the pointer via --mx/--my,
+     • the button leans toward the cursor (magnetic, --dn-tx/--dn-ty).
+   Pointer values are fed by CursorGlow (cursor-glow.tsx). */
 .admin-panel .dn-glow-soft {
   position: relative;
   overflow: hidden;
+  -webkit-backdrop-filter: var(--bf-dn-glow-rest, blur(10px) saturate(125%));
+  backdrop-filter: var(--bf-dn-glow-rest, blur(10px) saturate(125%));
+  /* Magnetic lean applied ONLY on :hover (below); eases back to 0 at rest. */
+  transform: translate(0px, 0px);
+  transition:
+    background-color 0.2s ease,
+    -webkit-backdrop-filter 0.2s ease,
+    backdrop-filter 0.2s ease,
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.admin-panel .dn-glow-soft:hover {
+  -webkit-backdrop-filter: var(--bf-dn-glow, blur(13px) saturate(140%));
+  backdrop-filter: var(--bf-dn-glow, blur(13px) saturate(140%));
+  transform: translate(var(--dn-tx, 0px), var(--dn-ty, 0px));
 }
 .admin-panel .dn-glow-soft::after {
   content: "";
@@ -146,18 +294,22 @@
   inset: 0;
   z-index: 0;
   border-radius: inherit;
+  /* Gold sheen (the dashboard's white sheen, warmed so hovers carry the brand). */
   background: radial-gradient(
     circle 90px at var(--mx, 50%) var(--my, 50%),
-    rgba(217, 164, 65, 0.35),
-    rgba(217, 164, 65, 0) 70%
+    rgba(240, 207, 138, 0.4),
+    rgba(240, 207, 138, 0) 70%
   );
-  opacity: var(--glow, 0);
+  opacity: 0;
   transition: opacity 0.18s ease;
   pointer-events: none;
 }
+.admin-panel .dn-glow-soft:hover::after {
+  opacity: 1;
+}
 
-/* Heavy frosted login card — alphas reduced from the source so the card stays
-   dark; the thick border keeps the signature look at a gold-tinted white. */
+/* Heavy frosted login card — alphas reduced from the dashboard so the card
+   stays dark; the thick border keeps the signature look at a gold-tinted white. */
 .admin-panel .dn-glass-card {
   position: relative;
   border: clamp(6px, 0.7vw, 12px) solid rgba(240, 207, 138, 0.28);
@@ -168,8 +320,8 @@
     rgba(255, 255, 255, 0.07) 55%,
     rgba(217, 164, 65, 0.16) 100%
   );
-  backdrop-filter: blur(30px) saturate(135%);
-  -webkit-backdrop-filter: blur(30px) saturate(135%);
+  -webkit-backdrop-filter: var(--bf-dn-glass, blur(30px) saturate(135%));
+  backdrop-filter: var(--bf-dn-glass, blur(30px) saturate(135%));
 }
 
 /* Translucent pill inputs (login card, search/filter fields). */
@@ -178,8 +330,8 @@
   border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 9999px;
   color: var(--dn-text);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: var(--bf-dn-field, blur(8px));
+  backdrop-filter: var(--bf-dn-field, blur(8px));
   transition:
     border-color 0.15s ease,
     background 0.15s ease;
@@ -193,14 +345,38 @@
   background: rgba(255, 255, 255, 0.12);
 }
 
-/* Animated background orbs — same five drifting ellipses as the dashboard,
-   recolored gold/bronze and dimmed so the shell stays dark. Honors
-   prefers-reduced-motion. */
+/* Login fields sit over the frosted card — deeper backdrop blur so the busy
+   backdrop reads as soft frost. */
+.admin-panel .dn-glass-card .dn-field {
+  -webkit-backdrop-filter: var(--bf-dn-login-field, blur(20px) saturate(125%));
+  backdrop-filter: var(--bf-dn-login-field, blur(20px) saturate(125%));
+}
+
+/* Animated background orbs — five heavily-blurred gold/bronze ellipses that
+   glow subtly through the warm near-black base. Movement is JS-driven
+   (ShellBackdrop): every several seconds each orb gets a fresh RANDOM target
+   transform and this transition eases it there, so the orbs roam freely on a
+   non-repeating path (no fixed keyframe loop). The per-orb rules below are
+   resting anchors + colors — used as-is when prefers-reduced-motion keeps the
+   JS idle. Honors prefers-reduced-motion (static positions, no animation). */
 .admin-panel .dn-backdrop {
   position: fixed;
   inset: 0;
   z-index: 0;
   overflow: hidden;
+  pointer-events: none;
+  background: var(--dn-base);
+}
+/* A faint film grain over the base + orbs (fixed, behind the z-10 content; it
+   reads subtly through the translucent panel too). Grayscale fractal-noise SVG,
+   tiled, low opacity. */
+.admin-panel .dn-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='dngrain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23dngrain)'/%3E%3C/svg%3E");
+  background-size: 140px 140px;
+  opacity: 0.18;
   pointer-events: none;
 }
 .admin-panel .dn-orb {
@@ -209,136 +385,50 @@
   height: clamp(380px, 40vw, 920px);
   border-radius: 50%;
   filter: blur(clamp(60px, 8vw, 130px));
-  opacity: 0.33;
+  /* Subtle gold head-glow on the warm dark base (not a bold wash). */
+  opacity: 0.3;
   will-change: transform;
+  transition: transform 20s cubic-bezier(0.45, 0, 0.55, 1);
 }
 .admin-panel .dn-orb-1 {
   /* deep bronze · bottom-left */
   background: var(--dn-creek-deep);
   bottom: -20%;
   left: -14%;
-  animation: dn-drift-1 17s ease-in-out -3s infinite;
 }
 .admin-panel .dn-orb-2 {
   /* deep bronze · bottom-left */
   background: var(--dn-creek-deep);
   bottom: -24%;
   left: 2%;
-  animation: dn-drift-2 31s ease-in-out -19s infinite;
 }
 .admin-panel .dn-orb-3 {
   /* gold · top-left */
   background: var(--dn-creek-mid);
   top: -16%;
   left: -6%;
-  animation: dn-drift-3 23s ease-in-out -7s infinite;
 }
 .admin-panel .dn-orb-4 {
   /* bronze · top-right */
   background: var(--dn-creek-moss);
   top: -24%;
   right: -12%;
-  animation: dn-drift-4 29s ease-in-out -11s infinite;
 }
 .admin-panel .dn-orb-5 {
   /* bronze · top-right */
   background: var(--dn-creek-moss);
   top: -26%;
   right: 3%;
-  animation: dn-drift-5 19s ease-in-out -25s infinite;
-}
-@keyframes dn-drift-1 {
-  0% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  25% {
-    transform: translate3d(16vw, -11vh, 0) scale(1.07);
-  }
-  50% {
-    transform: translate3d(24vw, 6vh, 0) scale(1.12);
-  }
-  75% {
-    transform: translate3d(9vw, 13vh, 0) scale(1.04);
-  }
-  100% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-}
-@keyframes dn-drift-2 {
-  0% {
-    transform: translate3d(0, 0, 0) scale(1.05);
-  }
-  25% {
-    transform: translate3d(10vw, 14vh, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(23vw, -3vh, 0) scale(1.1);
-  }
-  75% {
-    transform: translate3d(7vw, -15vh, 0) scale(1.03);
-  }
-  100% {
-    transform: translate3d(0, 0, 0) scale(1.05);
-  }
-}
-@keyframes dn-drift-3 {
-  0% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  25% {
-    transform: translate3d(18vw, 15vh, 0) scale(1.08);
-  }
-  50% {
-    transform: translate3d(28vw, 5vh, 0) scale(1.13);
-  }
-  75% {
-    transform: translate3d(11vw, 20vh, 0) scale(1.05);
-  }
-  100% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-}
-@keyframes dn-drift-4 {
-  0% {
-    transform: translate3d(0, 0, 0) scale(1.04);
-  }
-  25% {
-    transform: translate3d(-16vw, 11vh, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(-26vw, 2vh, 0) scale(1.11);
-  }
-  75% {
-    transform: translate3d(-10vw, 15vh, 0) scale(1.03);
-  }
-  100% {
-    transform: translate3d(0, 0, 0) scale(1.04);
-  }
-}
-@keyframes dn-drift-5 {
-  0% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  25% {
-    transform: translate3d(-7vw, 16vh, 0) scale(1.05);
-  }
-  50% {
-    transform: translate3d(-21vw, 8vh, 0) scale(1.12);
-  }
-  75% {
-    transform: translate3d(-13vw, -9vh, 0) scale(1.03);
-  }
-  100% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   .admin-panel .dn-orb {
-    animation: none !important;
+    transition: none;
   }
 }
 
-/* Custom overlay scrollbar — identical mechanics to the dashboard. */
+/* Custom overlay scrollbar — identical mechanics to the dashboard. The visible
+   bar is a JS-driven overlay (ScrollArea): a faint full-length pill track with a
+   FIXED-SIZE gold dot that maps scroll progress. */
 .admin-panel .dn-scroll {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* old Edge */
@@ -348,8 +438,10 @@
   height: 0;
   display: none;
 }
+/* the transparent pill running the length — inset from both rounded panel
+   corners (admin's panel floats, so both ends round). */
 .admin-panel .dn-bar-track {
-  --dn-thumb: 56px;
+  --dn-thumb: 56px; /* fixed pill length; slides by scroll progress */
   position: absolute;
   top: var(--dn-radius-panel);
   bottom: var(--dn-radius-panel);
@@ -364,6 +456,7 @@
 .admin-panel .dn-bar-track:hover {
   background: rgba(255, 255, 255, 0.16);
 }
+/* the fixed-length gold position pill (brand accent, kept from the old theme) */
 .admin-panel .dn-bar-thumb {
   position: absolute;
   left: 0;
