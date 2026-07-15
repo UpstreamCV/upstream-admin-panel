@@ -68,12 +68,13 @@ function ApiUnavailable({ detail }: { detail: string }) {
   );
 }
 
-// Authed shell — the dashboard-next chrome (dark/gold variant): solid shell
-// with drifting orbs, topbar on the shell, frosted rail + giant rounded
-// frosted panel whose content scrolls inside ScrollArea. The proxy middleware
-// guarantees a Supabase session; this layout additionally requires
-// platform-admin status via /v1/admin/me (UX-only — real enforcement is
-// current_platform_admin on every API call).
+// Authed shell — the dashboard's current dark chrome (gold variant): a warm
+// dark shell with JS-driven drifting orbs + film grain, the identity topbar on
+// the shell, a hover-expand icon-dock rail (Sidebar) that reflows the content
+// panel, and a giant frosted panel whose content scrolls inside ScrollArea. The
+// proxy middleware guarantees a Supabase session; this layout additionally
+// requires platform-admin status via /v1/admin/me (UX-only — real enforcement
+// is current_platform_admin on every API call).
 export default async function AppLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -101,7 +102,10 @@ export default async function AppLayout({
       <CursorGlow />
       <div className="relative z-10 flex h-full flex-col gap-3 md:gap-5 p-3 md:p-5">
         <Topbar email={me.email} />
-        <div className="flex-1 flex gap-3 md:gap-5 min-h-0">
+        {/* No inter-column gap: the rail owns its own px-1.5 margin and reflows
+            the panel as it hover-expands (see .dn-rail-dock), so the panel abuts
+            the collapsed icon dock — the dashboard's dock physics. */}
+        <div className="flex-1 flex min-h-0">
           <Sidebar />
           <main className="dn-panel flex-1 min-w-0 relative overflow-hidden">
             <ScrollArea>{children}</ScrollArea>

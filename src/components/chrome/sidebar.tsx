@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import clsx from "clsx";
 import {
@@ -16,9 +16,17 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-// Navigation rail — adapted from upstream-dashboard's sidebar-next.tsx.
-// Same pill grammar: active item = solid tile pill with gold gradient label;
-// inactive = faint translucent pill. Admin routes only; no coming-soon items.
+// Navigation rail — ported from upstream-dashboard's sidebar-next.tsx to the
+// current hover-dock design. NO container: the button pills sit directly on the
+// shell background. The rail collapses to an icon-only dock and expands to the
+// full labelled width on HOVER (no toggle button). It's in-flow and widens on
+// hover (.dn-rail-dock), so the content panel reflows to make room — the width
+// transition slides it smoothly. Admin routes only; the active item is a solid
+// GOLD pill (the admin's signature accent, kept per the brief) with a near-black
+// icon + label — the counterpart of the dashboard's solid-white active pill.
+//
+// (Unlike the dashboard rail, the admin rail carries NO user-identity block —
+// identity lives in the admin's separate <Topbar> above the rail/panel row.)
 const NAV: {
   label: string;
   href: string;
@@ -33,11 +41,72 @@ const NAV: {
   { label: "Admins", href: "/admins", match: /^\/admins/, icon: ShieldCheck },
 ];
 
-const ICON_SIZE = { width: "clamp(18px,1.6vw,22px)", height: "clamp(18px,1.6vw,22px)" };
+const ICON_SIZE = {
+  width: "clamp(18px,1.6vw,22px)",
+  height: "clamp(18px,1.6vw,22px)",
+};
+
+const ICON_SLOT = "3rem"; // fixed centered slot = collapsed rail content width
+
+// The centered, fixed-width icon slot shared by every pill, so a collapsed icon
+// is dead-centered (equal padding L/R) and never slides when the rail expands —
+// the label simply cross-fades in beside it. That's what keeps the expand smooth
+// and every pill identical in size.
+function Slot({ children }: { children: React.ReactNode }) {
+  return (
+    <span
+      className="grid place-items-center shrink-0"
+      style={{ width: ICON_SLOT }}
+    >
+      {children}
+    </span>
+  );
+}
+
+const ITEM_BASE = "flex items-center rounded-2xl py-2.5 transition-colors";
+const LABEL_BASE =
+  "font-bold text-[clamp(0.9rem,1.05vw,1.05rem)] truncate min-w-0 pr-3";
+
+// Rail expand state, tracked at MODULE scope so it survives the rail remounting
+// on navigation. The expand is JS-driven (not just CSS :hover) because after a
+// client-side navigation the browser won't re-apply :hover to a freshly-mounted
+// rail under a STATIONARY cursor — so clicking a nav item would otherwise
+// auto-collapse the rail on the new page until you wiggle the mouse.
+let railOpen = false;
+let lastPointer: { x: number; y: number } | null = null;
 
 export function Sidebar() {
   const pathname = usePathname();
   const [signingOut, setSigningOut] = useState(false);
+  const asideRef = useRef<HTMLElement>(null);
+  // Seed from the persisted module flag so a remounted rail paints already-open
+  // (no collapse flash) when the cursor is still over it after navigating.
+  const [open, setOpen] = useState(() => railOpen);
+
+  // Single source of truth for the expand: the pointer is inside the rail's
+  // CURRENT box (collapsed 3.75rem or expanded). Natural hysteresis — entering
+  // the narrow rail opens it; you stay open until you leave the WIDE rail. Runs
+  // on every move and is re-evaluated on each route change from the last known
+  // pointer, so it's correct even when the browser won't re-fire :hover.
+  useEffect(() => {
+    const evaluate = (x: number, y: number) => {
+      const el = asideRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const inside = x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+      if (inside !== railOpen) {
+        railOpen = inside;
+        setOpen(inside);
+      }
+    };
+    const onMove = (e: MouseEvent) => {
+      lastPointer = { x: e.clientX, y: e.clientY };
+      evaluate(e.clientX, e.clientY);
+    };
+    window.addEventListener("mousemove", onMove, { passive: true });
+    if (lastPointer) evaluate(lastPointer.x, lastPointer.y);
+    return () => window.removeEventListener("mousemove", onMove);
+  }, [pathname]);
 
   // Hard-redirect via window.location so the browser tosses every cached RSC
   // payload tied to the prior session (same posture as the dashboard).
@@ -56,10 +125,33 @@ export function Sidebar() {
     setSigningOut(false);
   }
 
+  function itemCls(active: boolean) {
+    return clsx(
+      ITEM_BASE,
+      active
+        ? "bg-[var(--dn-creek-mid)] shadow-sm"
+        : "bg-white/[0.06] hover:bg-white/[0.12]",
+    );
+  }
+  // Labels stay in the DOM (so the icon never reflows) but are clipped by the
+  // rail's overflow-x-hidden and faded out; on hover they cross-fade in as the
+  // rail widens.
+  function labelCls(color: string) {
+    return clsx(
+      LABEL_BASE,
+      "opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-data-[open=true]:opacity-100",
+      color,
+    );
+  }
+
   return (
+    // Tight symmetric px-1.5 (6px) margin: the icon-slot is centered in the
+    // 3.75rem dock. Top padding matches the panel's content padding so the first
+    // pill lines up with the panel's first content row.
     <aside
-      className="dn-rail dn-scroll hidden md:flex md:flex-col gap-1.5 px-3 py-4 sm:py-6 md:py-8 shrink-0 overflow-y-auto"
-      style={{ width: "clamp(190px,17vw,244px)" }}
+      ref={asideRef}
+      data-open={open ? "true" : "false"}
+      className="dn-rail-dock dn-scroll group hidden md:flex md:flex-col gap-1.5 px-1.5 pt-4 sm:pt-6 md:pt-8 pb-4 sm:pb-6 md:pb-8 shrink-0 overflow-x-hidden overflow-y-auto"
     >
       <nav className="flex flex-col gap-1.5">
         {NAV.map((item) => {
@@ -69,28 +161,23 @@ export function Sidebar() {
             <Link
               key={item.label}
               href={item.href}
-              className={clsx(
-                "flex items-center gap-2.5 rounded-2xl px-3 py-2.5 transition",
-                active
-                  ? "bg-[var(--dn-tile)] shadow-sm"
-                  : "bg-white/[0.04] hover:bg-white/[0.1]",
-              )}
+              className={itemCls(active)}
+              title={item.label}
+              aria-label={item.label}
             >
-              <Icon
-                aria-hidden
-                strokeWidth={2}
-                className={clsx(
-                  "shrink-0",
-                  active ? "text-[var(--dn-creek-mid)]" : "text-white/70",
-                )}
-                style={ICON_SIZE}
-              />
-              <span
-                className={clsx(
-                  "truncate font-bold text-[clamp(0.9rem,1.05vw,1.05rem)]",
-                  active ? "dn-grad-text" : "text-white/70",
-                )}
-              >
+              <Slot>
+                <Icon
+                  aria-hidden
+                  strokeWidth={2}
+                  className={clsx(
+                    "shrink-0",
+                    // Active pill is solid gold → near-black icon + label.
+                    active ? "text-[#1c1610]" : "text-white/80",
+                  )}
+                  style={ICON_SIZE}
+                />
+              </Slot>
+              <span className={labelCls(active ? "text-[#1c1610]" : "text-white/80")}>
                 {item.label}
               </span>
             </Link>
@@ -103,15 +190,22 @@ export function Sidebar() {
           type="button"
           onClick={handleSignOut}
           disabled={signingOut}
-          className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5 bg-white/[0.04] hover:bg-white/[0.1] transition text-left disabled:opacity-60 disabled:cursor-not-allowed"
+          title="Sign Out"
+          aria-label="Sign Out"
+          className={clsx(
+            itemCls(false),
+            "text-left disabled:opacity-60 disabled:cursor-not-allowed",
+          )}
         >
-          <LogOut
-            aria-hidden
-            strokeWidth={2}
-            className="shrink-0 text-white/70"
-            style={ICON_SIZE}
-          />
-          <span className="truncate font-bold text-[clamp(0.9rem,1.05vw,1.05rem)] text-white/70">
+          <Slot>
+            <LogOut
+              aria-hidden
+              strokeWidth={2}
+              className="shrink-0 text-white/80"
+              style={ICON_SIZE}
+            />
+          </Slot>
+          <span className={labelCls("text-white/80")}>
             {signingOut ? "Signing out…" : "Sign Out"}
           </span>
         </button>
