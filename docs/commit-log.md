@@ -4,6 +4,32 @@ Reverse chronological. Newest at top. Every meaningful commit gets an entry foll
 
 ---
 
+## 2026-07-15 - refactor: System is a single tab-less page (revert the System split)
+
+### Summary
+Per follow-up: the System page should show everything on one scrolling
+page with NO tabs (matching the dashboard's tab-less Home). Reverts the
+prior commit's System split — the three tab clients recombine into one
+`system-health-client` (health tiles + activity graphs + server-sampled
+strip + control-plane counters + streams-now + drill-in), and the
+`(system)` route group drops its `SectionTabs` `layout.tsx` and the
+`/system/activity` + `/system/control-plane` sub-routes. `(system)` now
+mirrors the dashboard's `(home)` group: `page.tsx` + a tab-less
+`loading.tsx`, no layout. The other sections (Traffic, Governance) and the
+detail-page tabs are unchanged.
+
+### Files touched
+- `src/app/(app)/(system)/system-health-client.tsx` — recombined client.
+- `src/app/(app)/(system)/page.tsx` — renders it.
+- removed `(system)/layout.tsx`, `(system)/overview-client.tsx`, and the
+  `(system)/system/{activity,control-plane}/` subtree.
+- `src/components/chrome/sidebar.tsx` — System `match` narrowed to `^/$`.
+
+### Testing/checks
+`tsc --noEmit` passes clean; PR CI gate (eslint + `next build`) verifies.
+
+---
+
 ## 2026-07-15 - refactor: restructure pages to match the dashboard architecture
 
 ### Summary

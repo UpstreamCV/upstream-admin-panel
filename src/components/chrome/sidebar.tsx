@@ -36,7 +36,7 @@ const NAV: {
   match: RegExp;
   icon: LucideIcon;
 }[] = [
-  { label: "System", href: "/", match: /^\/($|system)/, icon: Activity },
+  { label: "System", href: "/", match: /^\/$/, icon: Activity },
   { label: "Traffic", href: "/streams", match: /^\/(streams|usage)/, icon: Radio },
   { label: "Accounts", href: "/accounts", match: /^\/accounts/, icon: Building2 },
   {
