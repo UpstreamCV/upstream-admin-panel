@@ -1,8 +1,7 @@
+import { AppShell } from "@/components/chrome/app-shell";
 import { CursorGlow } from "@/components/chrome/cursor-glow";
-import { ScrollArea } from "@/components/chrome/scroll-area";
 import { ShellBackdrop } from "@/components/chrome/shell-backdrop";
-import { Sidebar } from "@/components/chrome/sidebar";
-import { Topbar } from "@/components/chrome/topbar";
+import { TopbarTools } from "@/components/chrome/topbar";
 import { serverFetch } from "@/lib/api/server";
 import { UpstreamApiError } from "@/lib/api/errors";
 import type { AdminMe } from "@/types/admin";
@@ -93,25 +92,22 @@ export default async function AppLayout({
     );
   }
 
+  // Identity for the rail's greeting block (identity moved OFF the topbar into
+  // the rail, mirroring the dashboard). The per-route chrome arrangement lives
+  // in <AppShell> (a Client Component reading the pathname): on Home the panel
+  // scrolls over the tools; elsewhere the panel is fixed with internal scroll.
+  const name = me.email?.split("@")[0] ?? "admin";
+
   return (
     // h-dvh + overflow-hidden locks the shell to exactly the viewport so the
-    // rail/topbar stay put and only the content area scrolls (inside
-    // ScrollArea) — same geometry as the dashboard's (app) layout.
+    // chrome stays put and only the content area scrolls — same geometry as the
+    // dashboard's (app) layout.
     <div className="dn-shell-bg relative h-dvh overflow-hidden">
       <ShellBackdrop />
       <CursorGlow />
-      <div className="relative z-10 flex h-full flex-col gap-3 md:gap-5 p-3 md:p-5">
-        <Topbar email={me.email} />
-        {/* No inter-column gap: the rail owns its own px-1.5 margin and reflows
-            the panel as it hover-expands (see .dn-rail-dock), so the panel abuts
-            the collapsed icon dock — the dashboard's dock physics. */}
-        <div className="flex-1 flex min-h-0">
-          <Sidebar />
-          <main className="dn-panel flex-1 min-w-0 relative overflow-hidden">
-            <ScrollArea>{children}</ScrollArea>
-          </main>
-        </div>
-      </div>
+      <AppShell name={name} tools={<TopbarTools />}>
+        {children}
+      </AppShell>
     </div>
   );
 }
