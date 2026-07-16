@@ -4,6 +4,77 @@ Reverse chronological. Newest at top. Every meaningful commit gets an entry foll
 
 ---
 
+## 2026-07-15 - refactor: restructure pages to match the dashboard architecture
+
+### Summary
+The admin chrome was re-skinned to the dashboard's theme, but its PAGE
+architecture still lagged: 6 flat rail pages, zero tabs, a uniform fixed
+panel for every route, and one global loading skeleton. This restructures
+the admin to be architecturally identical to `upstream-dashboard`, keeping
+admin content + the gold/orange accent. All URLs are unchanged (route
+groups add no segment); this is mostly file moves + new group layouts +
+splitting the fat clients into per-tab clients. No data-layer, auth-gate,
+or proxy changes.
+
+What changed to match the dashboard:
+- **Home-scroll shell**: new `AppShell` (client, pathname-aware) — Home
+  (`/`) scrolls with the panel rising over the tools; every other page is
+  a fixed panel with internal scroll. Identity moved OFF the topbar INTO
+  the rail (avatar + greeting, sized to `--dn-topbar-h`); the topbar became
+  tools-only (`TopbarTools`: search + "Upstream Admin" + logo), rendered
+  inside the panel on Home.
+- **4-section rail**: `Sidebar` NAV regrouped into System / Traffic /
+  Accounts / Governance, each with a widened `match` regex; active pill is
+  the solid gold pill.
+- **Route groups + SectionTabs**: pages regrouped into `(system)`,
+  `(traffic)`, `(accounts)`, `(governance)`. Each group's `layout.tsx`
+  renders a shared `SectionTabs` strip; each group's `loading.tsx` renders
+  a content-only `SectionContentSkeleton` BELOW the strip, so the strip
+  persists across tab nav while only content reloads.
+- **System split into tabs**: the one long `system-health-client` became
+  Overview (`/`, the scrolling Home), Activity (`/system/activity`),
+  Control plane (`/system/control-plane`).
+- **Tabbed detail pages (two-level nav)**: stream detail →
+  Overview / Validations / Reliability; account detail → Plan / Usage /
+  Members / Limits / Tokens. Each is a real sub-route with a persistent
+  header (in the detail `layout.tsx`) + its own loading skeleton. Detail
+  clients fetch the same key the header does — SWR dedupes.
+
+New primitives: `components/data/section-tabs.tsx`,
+`components/data/section-content-skeleton.tsx`,
+`components/chrome/app-shell.tsx`.
+
+### Files touched
+- `src/components/chrome/{app-shell,sidebar,topbar}.tsx` — home-scroll
+  shell, identity-in-rail + 4-section nav, tools-only topbar.
+- `src/components/data/{section-tabs,section-content-skeleton}.tsx` — new.
+- `src/app/(app)/layout.tsx` — renders `<AppShell>`; derives rail `name`.
+- `src/app/(app)/(system|traffic|accounts|governance)/…` — moved pages +
+  group `layout.tsx`/`loading.tsx`; System split into Overview/Activity/
+  Control-plane clients; stream + account detail split into tab routes
+  with persistent detail headers.
+
+### System interaction notes
+Presentation/routing only. Auth gate (`/v1/admin/me`), `serverFetch`,
+`useUpstreamList`, the `/api/upstream` proxy, and `proxy.ts` matcher are
+untouched (route groups keep every URL identical). No account scoping —
+the admin stays single-tenant.
+
+### Testing/checks
+`tsc --noEmit` / `npm run lint` / `npm run build` — run against a heavily
+loaded machine; the PR's CI gate (eslint + `next build`) is the source of
+truth for green. Static checks: no dangling imports to the removed
+`system-health-client` / `stream-detail-client` / `account-detail-client`;
+exactly one `page.tsx` resolves to `/`.
+
+### Follow-up TODOs
+- Home (`/`) now carries the System SectionTabs strip (intentional
+  divergence from the dashboard's tab-less home — a consequence of
+  "Home scrolls" + "System is tabbed").
+- Section/tab names (Traffic, Governance) are placeholders — adjust freely.
+
+---
+
 ## 2026-07-15 - style: re-sync admin chrome to the dashboard's current dark redesign
 
 ### Summary
