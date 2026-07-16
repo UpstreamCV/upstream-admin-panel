@@ -1,35 +1,47 @@
-// Top bar — adapted from upstream-dashboard's topbar-next.tsx. Sits directly
-// on the dark shell (no panel). Left: gold avatar + greeting; right: wordmark.
-// Server Component (display-only); the (app) layout passes `email` down from
-// the /v1/admin/me gate. The dashboard's unwired search field is dropped.
-export function Topbar({ email }: { email: string | null }) {
-  const name = email?.split("@")[0] ?? "admin";
-  const initial = name.trim().charAt(0).toUpperCase() || "U";
+import Image from "next/image";
+import { Search } from "lucide-react";
 
+// The top-RIGHT tools cluster of the admin header: search + "Upstream Admin"
+// wordmark + logo. Ported from upstream-dashboard's topbar-next.tsx. On Home
+// these render at the top-right INSIDE the content panel, so the panel's
+// background runs behind them (the panel "goes over" this area as it scrolls).
+// The admin identity (avatar + greeting) lives separately at the top of the left
+// rail. Server Component (display-only); the search input is presentational
+// until admin search lands.
+export function TopbarTools() {
   return (
-    <header className="flex items-center justify-between gap-4 px-1 sm:px-3 py-1">
-      <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-        <span
-          className="grid place-items-center rounded-full bg-[var(--dn-creek-mid)] text-[#1c1610] font-bold shrink-0"
+    <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+      <div className="hidden sm:flex items-center gap-3 sm:gap-4">
+        {/* Presentational — search isn't wired yet. */}
+        <div className="dn-glow-soft relative rounded-full">
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 h-4 w-4 text-white/75"
+            aria-hidden
+          />
+          <input
+            type="search"
+            aria-label="Search"
+            placeholder="Search…"
+            className="dn-field relative z-[1] py-2 pl-9 pr-4 text-[clamp(0.85rem,1vw,1rem)]"
+            style={{ width: "clamp(150px,18vw,260px)" }}
+          />
+        </div>
+        <span className="text-white/80 font-bold text-[clamp(1.05rem,2vw,1.85rem)] whitespace-nowrap">
+          Upstream <span className="dn-grad-text">Admin</span>
+        </span>
+        <Image
+          src="/android-chrome-192x192.png"
+          alt="Upstream"
+          width={64}
+          height={64}
+          priority
+          className="object-contain opacity-85"
           style={{
             width: "clamp(40px,4.4vw,64px)",
             height: "clamp(40px,4.4vw,64px)",
-            fontSize: "clamp(1rem,1.6vw,1.5rem)",
           }}
-          aria-hidden
-        >
-          {initial}
-        </span>
-        <h1 className="truncate text-white font-bold text-[clamp(1.15rem,2.2vw,2rem)]">
-          Welcome back, <span className="capitalize">{name}</span>
-        </h1>
+        />
       </div>
-
-      <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-        <span className="hidden sm:inline text-white/80 font-bold text-[clamp(1.05rem,2vw,1.85rem)] whitespace-nowrap">
-          Upstream <span className="dn-grad-text">Admin</span>
-        </span>
-      </div>
-    </header>
+    </div>
   );
 }
