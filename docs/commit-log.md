@@ -4,10 +4,22 @@ Reverse chronological. Newest at top. Every meaningful commit gets an entry foll
 
 ---
 
+## 2026-10-27 - chore: stop Dependabot version updates
+
+### Summary
+The project is finished and published for reference, so nobody is
+left to review automated dependency-update PRs. Removes
+`.github/dependabot.yml`; the open Dependabot PRs are closed.
+
+- `.github/dependabot.yml` — deleted.
+- `docs/commit-log.md` — this entry; stray leading space removed from the LICENSE entry.
+
+---
+
 ## 2026-10-27 - chore: add all-rights-reserved LICENSE
 
 ### Summary
- Adds `LICENSE` ahead of making the repo public: copyright
+Adds `LICENSE` ahead of making the repo public: copyright
 Upstream Vision, Inc., all rights reserved. The source is visible for
 reference only; no rights to use, copy, modify, or distribute it are
 granted. Third-party components keep their own licenses.
